@@ -1,0 +1,115 @@
+package validation
+
+import "github.com/yashx/shak/types"
+
+// Validatable is implemented by types that know how to describe their own
+// validation. The Validation method returns a Validation that captures the
+// current field values and their rules — call it once per validation cycle
+// to get a consistent snapshot.
+//
+// Implement this on your domain structs so they can be passed to
+// RunValidation / RunFullValidation or composed into parent validations via
+// NewValidations.
+type Validatable interface {
+	Validation() Validation
+}
+
+// Validation represents a named, executable validation — the result of
+// describing what to check and against which rules. It is produced by
+// Value or NewValidations and then executed by calling Validate or
+// ValidateAll.
+//
+// Validate stops at the first error; ValidateAll collects every error.
+// Name returns the field or struct label used to build error paths.
+type Validation interface {
+	Name() string
+	Validate() *types.ValidationError
+	ValidateAll() []*types.ValidationError
+}
+
+type valueValidation[T any] struct {
+	name  string
+	value T
+	rules []types.Rule[T]
+}
+
+func Value[T any](name string, value T, rules ...types.Rule[T]) Validation {
+	return &valueValidation[T]{
+		name:  name,
+		value: value,
+		rules: rules,
+	}
+}
+
+func (v *valueValidation[T]) Name() string {
+	return v.name
+}
+
+func (v *valueValidation[T]) Validate() *types.ValidationError {
+	for _, r := range v.rules {
+		if r == nil {
+			continue
+		}
+		if err := r(v.value); err != nil {
+			return types.NewValidationErrorWithParentName(v.Name(), err)
+		}
+	}
+	return nil
+}
+
+func (v *valueValidation[T]) ValidateAll() []*types.ValidationError {
+	var errors []*types.ValidationError
+	for _, r := range v.rules {
+		if r == nil {
+			continue
+		}
+		if err := r(v.value); err != nil {
+			errors = append(errors, types.NewValidationErrorWithParentName(v.Name(), err))
+		}
+	}
+	return errors
+}
+
+type validationsHolder struct {
+	name        string
+	validations []Validation
+}
+
+// NewValidations groups multiple Validation entries under a named parent.
+func NewValidations(name string, validations ...Validation) Validation {
+	return &validationsHolder{
+		name:        name,
+		validations: validations,
+	}
+}
+
+func (s *validationsHolder) Name() string {
+	return s.name
+}
+
+func (s *validationsHolder) Validate() *types.ValidationError {
+	for _, v := range s.validations {
+		if v == nil {
+			continue
+		}
+		if err := v.Validate(); err != nil {
+			return types.NewValidationErrorWithParentName(s.Name(), err)
+		}
+	}
+	return nil
+}
+
+func (s *validationsHolder) ValidateAll() []*types.ValidationError {
+	var errors []*types.ValidationError
+	for _, v := range s.validations {
+		if v == nil {
+			continue
+		}
+		if err := v.ValidateAll(); err != nil {
+			for _, e := range err {
+				errors = append(errors, types.NewValidationErrorWithParentName(s.Name(), e))
+			}
+		}
+	}
+	return errors
+}
