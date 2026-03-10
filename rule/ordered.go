@@ -80,6 +80,16 @@ func Range[T cmp.Ordered](min, max T) types.Rule[T] {
 	}
 }
 
+// NotInRange validates that the value is not between min and max inclusive.
+func NotInRange[T cmp.Ordered](min, max T) types.Rule[T] {
+	return func(value T) *types.ValidationError {
+		if value < min || value > max {
+			return nil
+		}
+		return types.NewValidationError("value %v must not be between %v and %v", value, min, max)
+	}
+}
+
 // LessThan validates that the value is strictly less than le.
 func LessThan[T cmp.Ordered](le T) types.Rule[T] {
 	return func(value T) *types.ValidationError {

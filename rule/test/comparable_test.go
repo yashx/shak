@@ -176,76 +176,76 @@ func TestNotEqualBool(t *testing.T) {
 	}
 }
 
-// EqualsAny
+// EqualToAny
 
-func TestEqualsAnyInt(t *testing.T) {
-	r := rule.EqualsAny[int](1, 2, 3)
+func TestEqualToAnyInt(t *testing.T) {
+	r := rule.EqualToAny[int](1, 2, 3)
 	if err := r(2); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
-func TestEqualsAnyIntError(t *testing.T) {
-	r := rule.EqualsAny[int](1, 2, 3)
+func TestEqualToAnyIntError(t *testing.T) {
+	r := rule.EqualToAny[int](1, 2, 3)
 	if err := r(99); err == nil {
 		t.Errorf("Error expected for value not in list")
 	}
 }
 
-func TestEqualsAnyString(t *testing.T) {
-	r := rule.EqualsAny[string]("red", "green", "blue")
+func TestEqualToAnyString(t *testing.T) {
+	r := rule.EqualToAny[string]("red", "green", "blue")
 	if err := r("green"); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
-func TestEqualsAnyStringError(t *testing.T) {
-	r := rule.EqualsAny[string]("red", "green", "blue")
+func TestEqualToAnyStringError(t *testing.T) {
+	r := rule.EqualToAny[string]("red", "green", "blue")
 	if err := r("purple"); err == nil {
 		t.Errorf("Error expected for value not in list")
 	}
 }
 
-func TestEqualsAnyCustomType(t *testing.T) {
+func TestEqualToAnyCustomType(t *testing.T) {
 	type Color string
-	r := rule.EqualsAny[Color]("red", "green")
+	r := rule.EqualToAny[Color]("red", "green")
 	if err := r(Color("red")); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
-// NotEqualsAny
+// NotEqualToAny
 
-func TestNotEqualsAnyInt(t *testing.T) {
-	r := rule.NotEqualsAny[int](0, -1)
+func TestNotEqualToAnyInt(t *testing.T) {
+	r := rule.NotEqualToAny[int](0, -1)
 	if err := r(5); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
-func TestNotEqualsAnyIntError(t *testing.T) {
-	r := rule.NotEqualsAny[int](0, -1)
+func TestNotEqualToAnyIntError(t *testing.T) {
+	r := rule.NotEqualToAny[int](0, -1)
 	if err := r(0); err == nil {
 		t.Errorf("Error expected when value is in forbidden list")
 	}
 }
 
-func TestNotEqualsAnyString(t *testing.T) {
-	r := rule.NotEqualsAny[string]("root", "admin")
+func TestNotEqualToAnyString(t *testing.T) {
+	r := rule.NotEqualToAny[string]("root", "admin")
 	if err := r("alice"); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
-func TestNotEqualsAnyStringError(t *testing.T) {
-	r := rule.NotEqualsAny[string]("root", "admin")
+func TestNotEqualToAnyStringError(t *testing.T) {
+	r := rule.NotEqualToAny[string]("root", "admin")
 	if err := r("admin"); err == nil {
 		t.Errorf("Error expected when value is in forbidden list")
 	}
 }
 
-func TestNotEqualsAnyBool(t *testing.T) {
-	r := rule.NotEqualsAny[bool](false)
+func TestNotEqualToAnyBool(t *testing.T) {
+	r := rule.NotEqualToAny[bool](false)
 	if err := r(true); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}

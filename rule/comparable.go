@@ -46,8 +46,8 @@ func NotEqual[T comparable](ne T) types.Rule[T] {
 	}
 }
 
-// EqualsAny validates that the value equals at least one of the provided values.
-func EqualsAny[T comparable](eq ...T) types.Rule[T] {
+// EqualToAny validates that the value equals at least one of the provided values.
+func EqualToAny[T comparable](eq ...T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
 		for _, v := range eq {
 			if value == v {
@@ -58,8 +58,8 @@ func EqualsAny[T comparable](eq ...T) types.Rule[T] {
 	}
 }
 
-// NotEqualsAny validates that the value does not equal any of the provided values.
-func NotEqualsAny[T comparable](ne ...T) types.Rule[T] {
+// NotEqualToAny validates that the value does not equal any of the provided values.
+func NotEqualToAny[T comparable](ne ...T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
 		for _, v := range ne {
 			if value == v {

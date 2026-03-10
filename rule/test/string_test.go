@@ -46,41 +46,41 @@ func TestLengthStringCustomTypeError(t *testing.T) {
 	}
 }
 
-// RuneLength
+// LengthRune
 
-func TestRuneLengthASCII(t *testing.T) {
-	r := rule.RuneLength[string](5)
+func TestLengthRuneASCII(t *testing.T) {
+	r := rule.LengthRune[string](5)
 	if err := r("hello"); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
-func TestRuneLengthASCIIError(t *testing.T) {
-	r := rule.RuneLength[string](3)
+func TestLengthRuneASCIIError(t *testing.T) {
+	r := rule.LengthRune[string](3)
 	if err := r("hello"); err == nil {
 		t.Errorf("Error expected for wrong rune count")
 	}
 }
 
-func TestRuneLengthUnicode(t *testing.T) {
+func TestLengthRuneUnicode(t *testing.T) {
 	// "héllo" is 5 runes but 6 bytes
-	r := rule.RuneLength[string](5)
+	r := rule.LengthRune[string](5)
 	if err := r("héllo"); err != nil {
 		t.Errorf("No errors expected for 5-rune unicode string, got: %v", err)
 	}
 }
 
-func TestRuneLengthCustomType(t *testing.T) {
+func TestLengthRuneCustomType(t *testing.T) {
 	type Bio string
-	r := rule.RuneLength[Bio](3)
+	r := rule.LengthRune[Bio](3)
 	if err := r(Bio("日本語")); err != nil {
 		t.Errorf("No errors expected for 3-rune CJK string, got: %v", err)
 	}
 }
 
-func TestRuneLengthCustomTypeError(t *testing.T) {
+func TestLengthRuneCustomTypeError(t *testing.T) {
 	type Bio string
-	r := rule.RuneLength[Bio](2)
+	r := rule.LengthRune[Bio](2)
 	if err := r(Bio("日本語")); err == nil {
 		t.Errorf("Error expected for wrong rune count on custom type")
 	}
@@ -189,5 +189,486 @@ func TestNotEqualIgnoreCaseCustomTypeError(t *testing.T) {
 	r := rule.NotEqualIgnoreCase[Role]("superuser")
 	if err := r(Role("SUPERUSER")); err == nil {
 		t.Errorf("Error expected for case-insensitive match on custom type")
+	}
+}
+
+// MinLengthString
+
+func TestMinLengthStringValid(t *testing.T) {
+	r := rule.MinLengthString[string](3)
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestMinLengthStringAtBound(t *testing.T) {
+	r := rule.MinLengthString[string](5)
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected at exact min length, got: %v", err)
+	}
+}
+
+func TestMinLengthStringError(t *testing.T) {
+	r := rule.MinLengthString[string](10)
+	if err := r("hi"); err == nil {
+		t.Errorf("Error expected for string below min length")
+	}
+}
+
+func TestMinLengthStringCustomType(t *testing.T) {
+	type Username string
+	r := rule.MinLengthString[Username](3)
+	if err := r(Username("yash")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// MaxLengthString
+
+func TestMaxLengthStringValid(t *testing.T) {
+	r := rule.MaxLengthString[string](10)
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestMaxLengthStringAtBound(t *testing.T) {
+	r := rule.MaxLengthString[string](5)
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected at exact max length, got: %v", err)
+	}
+}
+
+func TestMaxLengthStringError(t *testing.T) {
+	r := rule.MaxLengthString[string](3)
+	if err := r("hello"); err == nil {
+		t.Errorf("Error expected for string above max length")
+	}
+}
+
+func TestMaxLengthStringCustomType(t *testing.T) {
+	type Username string
+	r := rule.MaxLengthString[Username](20)
+	if err := r(Username("yash")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// MinLengthRune
+
+func TestMinLengthRuneValid(t *testing.T) {
+	r := rule.MinLengthRune[string](3)
+	if err := r("héllo"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestMinLengthRuneError(t *testing.T) {
+	r := rule.MinLengthRune[string](10)
+	if err := r("hi"); err == nil {
+		t.Errorf("Error expected for string below min rune length")
+	}
+}
+
+func TestMinLengthRuneUnicode(t *testing.T) {
+	r := rule.MinLengthRune[string](3)
+	if err := r("日本語"); err != nil {
+		t.Errorf("No errors expected for 3-rune CJK string, got: %v", err)
+	}
+}
+
+func TestMinLengthRuneCustomType(t *testing.T) {
+	type Bio string
+	r := rule.MinLengthRune[Bio](2)
+	if err := r(Bio("日本")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// MaxLengthRune
+
+func TestMaxLengthRuneValid(t *testing.T) {
+	r := rule.MaxLengthRune[string](10)
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestMaxLengthRuneError(t *testing.T) {
+	r := rule.MaxLengthRune[string](2)
+	if err := r("日本語"); err == nil {
+		t.Errorf("Error expected for string above max rune length")
+	}
+}
+
+func TestMaxLengthRuneAtBound(t *testing.T) {
+	r := rule.MaxLengthRune[string](3)
+	if err := r("日本語"); err != nil {
+		t.Errorf("No errors expected at exact max rune length, got: %v", err)
+	}
+}
+
+func TestMaxLengthRuneCustomType(t *testing.T) {
+	type Bio string
+	r := rule.MaxLengthRune[Bio](5)
+	if err := r(Bio("hello")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotMatchString
+
+func TestNotMatchStringValid(t *testing.T) {
+	re := regexp.MustCompile(`\d`)
+	r := rule.NotMatchString[string](re)
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotMatchStringError(t *testing.T) {
+	re := regexp.MustCompile(`\d`)
+	r := rule.NotMatchString[string](re)
+	if err := r("hello123"); err == nil {
+		t.Errorf("Error expected for string matching pattern")
+	}
+}
+
+func TestNotMatchStringCustomType(t *testing.T) {
+	type Slug string
+	re := regexp.MustCompile(`\s`)
+	r := rule.NotMatchString[Slug](re)
+	if err := r(Slug("no-spaces-here")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotContainsString
+
+func TestNotContainsStringValid(t *testing.T) {
+	r := rule.NotContainsString[string]("bad")
+	if err := r("hello world"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotContainsStringError(t *testing.T) {
+	r := rule.NotContainsString[string]("bad")
+	if err := r("this is bad"); err == nil {
+		t.Errorf("Error expected for string containing substr")
+	}
+}
+
+func TestNotContainsStringCustomType(t *testing.T) {
+	type Comment string
+	r := rule.NotContainsString[Comment]("spam")
+	if err := r(Comment("great post!")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotHasPrefix
+
+func TestNotHasPrefixValid(t *testing.T) {
+	r := rule.NotHasPrefix[string]("tmp_")
+	if err := r("users"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotHasPrefixError(t *testing.T) {
+	r := rule.NotHasPrefix[string]("tmp_")
+	if err := r("tmp_file"); err == nil {
+		t.Errorf("Error expected for string with forbidden prefix")
+	}
+}
+
+func TestNotHasPrefixCustomType(t *testing.T) {
+	type TableName string
+	r := rule.NotHasPrefix[TableName]("_")
+	if err := r(TableName("users")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotHasSuffix
+
+func TestNotHasSuffixValid(t *testing.T) {
+	r := rule.NotHasSuffix[string](".tmp")
+	if err := r("report.pdf"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotHasSuffixError(t *testing.T) {
+	r := rule.NotHasSuffix[string](".tmp")
+	if err := r("draft.tmp"); err == nil {
+		t.Errorf("Error expected for string with forbidden suffix")
+	}
+}
+
+func TestNotHasSuffixCustomType(t *testing.T) {
+	type Filename string
+	r := rule.NotHasSuffix[Filename](".exe")
+	if err := r(Filename("script.sh")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotContainsAnyChar
+
+func TestNotContainsAnyCharValid(t *testing.T) {
+	r := rule.NotContainsAnyChar[string](" \t\n")
+	if err := r("nospaces"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotContainsAnyCharError(t *testing.T) {
+	r := rule.NotContainsAnyChar[string](" \t\n")
+	if err := r("has space"); err == nil {
+		t.Errorf("Error expected for string containing forbidden char")
+	}
+}
+
+func TestNotContainsAnyCharCustomType(t *testing.T) {
+	type Password string
+	r := rule.NotContainsAnyChar[Password](" ")
+	if err := r(Password("s3cr3t!")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotContainsRune
+
+func TestNotContainsRuneValid(t *testing.T) {
+	r := rule.NotContainsRune[string]('@')
+	if err := r("notanemail"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotContainsRuneError(t *testing.T) {
+	r := rule.NotContainsRune[string]('@')
+	if err := r("user@example.com"); err == nil {
+		t.Errorf("Error expected for string containing forbidden rune")
+	}
+}
+
+func TestNotContainsRuneCustomType(t *testing.T) {
+	type Tag string
+	r := rule.NotContainsRune[Tag](' ')
+	if err := r(Tag("no-spaces")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// IsBlank
+
+func TestIsBlankValid(t *testing.T) {
+	r := rule.IsBlank[string]()
+	if err := r(""); err != nil {
+		t.Errorf("No errors expected for empty string, got: %v", err)
+	}
+}
+
+func TestIsBlankWhitespaceValid(t *testing.T) {
+	r := rule.IsBlank[string]()
+	if err := r("   "); err != nil {
+		t.Errorf("No errors expected for whitespace-only string, got: %v", err)
+	}
+}
+
+func TestIsBlankError(t *testing.T) {
+	r := rule.IsBlank[string]()
+	if err := r("hello"); err == nil {
+		t.Errorf("Error expected for non-blank string")
+	}
+}
+
+func TestIsBlankCustomType(t *testing.T) {
+	type OptionalField string
+	r := rule.IsBlank[OptionalField]()
+	if err := r(OptionalField("\t\n")); err != nil {
+		t.Errorf("No errors expected for tab/newline-only string, got: %v", err)
+	}
+}
+
+// ContainsString
+
+func TestContainsStringValid(t *testing.T) {
+	r := rule.ContainsString[string]("world")
+	if err := r("hello world"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestContainsStringError(t *testing.T) {
+	r := rule.ContainsString[string]("world")
+	if err := r("hello"); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestContainsStringEmpty(t *testing.T) {
+	r := rule.ContainsString[string]("")
+	if err := r("anything"); err != nil {
+		t.Errorf("No errors expected for empty substr, got: %v", err)
+	}
+}
+
+func TestContainsStringCustomType(t *testing.T) {
+	type Bio string
+	r := rule.ContainsString[Bio]("go")
+	if err := r(Bio("I love golang")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// HasPrefix
+
+func TestHasPrefixValid(t *testing.T) {
+	r := rule.HasPrefix[string]("hello")
+	if err := r("hello world"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestHasPrefixError(t *testing.T) {
+	r := rule.HasPrefix[string]("world")
+	if err := r("hello world"); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestHasPrefixEmpty(t *testing.T) {
+	r := rule.HasPrefix[string]("")
+	if err := r("anything"); err != nil {
+		t.Errorf("No errors expected for empty prefix, got: %v", err)
+	}
+}
+
+func TestHasPrefixCustomType(t *testing.T) {
+	type Path string
+	r := rule.HasPrefix[Path]("/api")
+	if err := r(Path("/api/users")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// HasSuffix
+
+func TestHasSuffixValid(t *testing.T) {
+	r := rule.HasSuffix[string](".go")
+	if err := r("main.go"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestHasSuffixError(t *testing.T) {
+	r := rule.HasSuffix[string](".go")
+	if err := r("main.rs"); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestHasSuffixCustomType(t *testing.T) {
+	type Filename string
+	r := rule.HasSuffix[Filename](".json")
+	if err := r(Filename("config.json")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// ContainsAnyChar
+
+func TestContainsAnyCharValid(t *testing.T) {
+	r := rule.ContainsAnyChar[string]("aeiou")
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestContainsAnyCharError(t *testing.T) {
+	r := rule.ContainsAnyChar[string]("aeiou")
+	if err := r("rhythm"); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestContainsAnyCharCustomType(t *testing.T) {
+	type Password string
+	r := rule.ContainsAnyChar[Password]("!@#$%")
+	if err := r(Password("secret!")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// ContainsRune
+
+func TestContainsRuneValid(t *testing.T) {
+	r := rule.ContainsRune[string]('!')
+	if err := r("hello!"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestContainsRuneError(t *testing.T) {
+	r := rule.ContainsRune[string]('!')
+	if err := r("hello"); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestContainsRuneUnicode(t *testing.T) {
+	r := rule.ContainsRune[string]('é')
+	if err := r("café"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestContainsRuneCustomType(t *testing.T) {
+	type Tag string
+	r := rule.ContainsRune[Tag]('-')
+	if err := r(Tag("well-formed")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// NotBlank
+
+func TestNotBlankValid(t *testing.T) {
+	r := rule.NotBlank[string]()
+	if err := r("hello"); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotBlankError(t *testing.T) {
+	r := rule.NotBlank[string]()
+	if err := r(""); err == nil {
+		t.Errorf("Error expected for empty string, got nil")
+	}
+}
+
+func TestNotBlankWhitespaceError(t *testing.T) {
+	r := rule.NotBlank[string]()
+	if err := r("   "); err == nil {
+		t.Errorf("Error expected for whitespace-only string, got nil")
+	}
+}
+
+func TestNotBlankTabsAndNewlines(t *testing.T) {
+	r := rule.NotBlank[string]()
+	if err := r("\t\n"); err == nil {
+		t.Errorf("Error expected for tab/newline-only string, got nil")
+	}
+}
+
+func TestNotBlankCustomType(t *testing.T) {
+	type Name string
+	r := rule.NotBlank[Name]()
+	if err := r(Name("yash")); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
 	}
 }

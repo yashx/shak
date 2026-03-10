@@ -185,3 +185,81 @@ func TestLengthMapCustomType(t *testing.T) {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
+
+// EqualMap
+
+func TestEqualMapValid(t *testing.T) {
+	m := map[string]int{"a": 1, "b": 2}
+	r := rule.EqualMap(map[string]int{"a": 1, "b": 2})
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestEqualMapError(t *testing.T) {
+	m := map[string]int{"a": 1}
+	r := rule.EqualMap(map[string]int{"a": 2})
+	if err := r(m); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestEqualMapEmpty(t *testing.T) {
+	m := map[string]int{}
+	r := rule.EqualMap(map[string]int{})
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected for equal empty maps, got: %v", err)
+	}
+}
+
+func TestEqualMapDifferentKeys(t *testing.T) {
+	m := map[string]int{"a": 1}
+	r := rule.EqualMap(map[string]int{"b": 1})
+	if err := r(m); err == nil {
+		t.Errorf("Error expected for maps with different keys, got nil")
+	}
+}
+
+func TestEqualMapCustomType(t *testing.T) {
+	type MyMap map[string]int
+	m := MyMap{"x": 10}
+	r := rule.EqualMap(MyMap{"x": 10})
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// EqualMapFunc
+
+func TestEqualMapFuncValid(t *testing.T) {
+	m := map[string]int{"a": 1, "b": 2}
+	r := rule.EqualMapFunc(&m, map[string]int{"a": 1, "b": 2}, func(a, b int) bool { return a == b })
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestEqualMapFuncError(t *testing.T) {
+	m := map[string]int{"a": 1}
+	r := rule.EqualMapFunc(&m, map[string]int{"a": 2}, func(a, b int) bool { return a == b })
+	if err := r(m); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}
+
+func TestEqualMapFuncCustomEquality(t *testing.T) {
+	// Compare ints to floats, different value types
+	m := map[string]int{"a": 1, "b": 2}
+	r := rule.EqualMapFunc(&m, map[string]float64{"a": 1.0, "b": 2.0}, func(a int, b float64) bool { return float64(a) == b })
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected with custom equality, got: %v", err)
+	}
+}
+
+func TestEqualMapFuncCustomEqualityError(t *testing.T) {
+	m := map[string]int{"a": 1}
+	r := rule.EqualMapFunc(&m, map[string]float64{"a": 1.9}, func(a int, b float64) bool { return float64(a) == b })
+	if err := r(m); err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+}

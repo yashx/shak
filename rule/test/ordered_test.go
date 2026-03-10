@@ -581,3 +581,63 @@ func TestNegativeOrZeroCustomType(t *testing.T) {
 		t.Errorf("Error expected for positive custom type")
 	}
 }
+
+// NotInRange
+
+func TestNotInRangeValid(t *testing.T) {
+	r := rule.NotInRange[int](1, 10)
+	if err := r(20); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotInRangeBelowMin(t *testing.T) {
+	r := rule.NotInRange[int](1, 10)
+	if err := r(0); err != nil {
+		t.Errorf("No errors expected for value below range, got: %v", err)
+	}
+}
+
+func TestNotInRangeAtMinError(t *testing.T) {
+	r := rule.NotInRange[int](1, 10)
+	if err := r(1); err == nil {
+		t.Errorf("Error expected for value at lower bound")
+	}
+}
+
+func TestNotInRangeAtMaxError(t *testing.T) {
+	r := rule.NotInRange[int](1, 10)
+	if err := r(10); err == nil {
+		t.Errorf("Error expected for value at upper bound")
+	}
+}
+
+func TestNotInRangeInsideError(t *testing.T) {
+	r := rule.NotInRange[int](1, 10)
+	if err := r(5); err == nil {
+		t.Errorf("Error expected for value inside range")
+	}
+}
+
+func TestNotInRangeFloat64Valid(t *testing.T) {
+	r := rule.NotInRange[float64](0.0, 1.0)
+	if err := r(1.5); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNotInRangeCustomType(t *testing.T) {
+	type Port int
+	r := rule.NotInRange[Port](1024, 49151)
+	if err := r(Port(80)); err != nil {
+		t.Errorf("No errors expected for well-known port, got: %v", err)
+	}
+}
+
+func TestNotInRangeCustomTypeError(t *testing.T) {
+	type Port int
+	r := rule.NotInRange[Port](1024, 49151)
+	if err := r(Port(8080)); err == nil {
+		t.Errorf("Error expected for registered port inside range")
+	}
+}
