@@ -43,8 +43,11 @@ func TestIsValidPasses(t *testing.T) {
 
 func TestIsValidFails(t *testing.T) {
 	r := rule.IsValid[stubValidatable]()
-	if err := r(stubValidatable{err: types.NewValidationError("inner rule failed")}); err == nil {
+	err := r(stubValidatable{err: types.NewValidationError("inner rule failed")})
+	if err == nil {
 		t.Errorf("Error expected when inner Validate returns an error")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -53,6 +56,8 @@ func TestIsValidPropagatesErrorMessage(t *testing.T) {
 	err := r(stubValidatable{err: types.NewValidationError("something is wrong")})
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 	if err.Message != "something is wrong" {
 		t.Errorf("Expected original error message, got: %v", err.Message)
@@ -68,14 +73,20 @@ func TestIsValidRealStructPasses(t *testing.T) {
 
 func TestIsValidRealStructFailsEmptyName(t *testing.T) {
 	r := rule.IsValid[product]()
-	if err := r(product{Name: "", Price: 9.99}); err == nil {
+	err := r(product{Name: "", Price: 9.99})
+	if err == nil {
 		t.Errorf("Error expected for empty name")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestIsValidRealStructFailsNegativePrice(t *testing.T) {
 	r := rule.IsValid[product]()
-	if err := r(product{Name: "Widget", Price: -1.0}); err == nil {
+	err := r(product{Name: "Widget", Price: -1.0})
+	if err == nil {
 		t.Errorf("Error expected for negative price")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

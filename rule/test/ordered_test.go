@@ -24,8 +24,11 @@ func TestMinIntEqual(t *testing.T) {
 
 func TestMinIntError(t *testing.T) {
 	r := rule.Min[int](5)
-	if err := r(4); err == nil {
+	err := r(4)
+	if err == nil {
 		t.Errorf("Error expected for value below min")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -38,8 +41,11 @@ func TestMinFloat64Valid(t *testing.T) {
 
 func TestMinFloat64Error(t *testing.T) {
 	r := rule.Min[float64](1.5)
-	if err := r(1.0); err == nil {
+	err := r(1.0)
+	if err == nil {
 		t.Errorf("Error expected for float below min")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -52,8 +58,11 @@ func TestMinStringValid(t *testing.T) {
 
 func TestMinStringError(t *testing.T) {
 	r := rule.Min[string]("m")
-	if err := r("a"); err == nil {
+	err := r("a")
+	if err == nil {
 		t.Errorf("Error expected for string less than min")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -83,8 +92,11 @@ func TestMaxIntEqual(t *testing.T) {
 
 func TestMaxIntError(t *testing.T) {
 	r := rule.Max[int](100)
-	if err := r(101); err == nil {
+	err := r(101)
+	if err == nil {
 		t.Errorf("Error expected for value above max")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -97,8 +109,11 @@ func TestMaxFloat64Valid(t *testing.T) {
 
 func TestMaxFloat64Error(t *testing.T) {
 	r := rule.Max[float64](9.99)
-	if err := r(10.0); err == nil {
+	err := r(10.0)
+	if err == nil {
 		t.Errorf("Error expected for float above max")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -120,8 +135,11 @@ func TestMaxCustomType(t *testing.T) {
 func TestMaxCustomTypeError(t *testing.T) {
 	type Percentage float64
 	r := rule.Max[Percentage](100.0)
-	if err := r(Percentage(100.1)); err == nil {
+	err := r(Percentage(100.1))
+	if err == nil {
 		t.Errorf("Error expected for value above max")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -150,15 +168,21 @@ func TestRangeIntAtMax(t *testing.T) {
 
 func TestRangeIntBelowMin(t *testing.T) {
 	r := rule.Range[int](1, 10)
-	if err := r(0); err == nil {
+	err := r(0)
+	if err == nil {
 		t.Errorf("Error expected for value below range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestRangeIntAboveMax(t *testing.T) {
 	r := rule.Range[int](1, 10)
-	if err := r(11); err == nil {
+	err := r(11)
+	if err == nil {
 		t.Errorf("Error expected for value above range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -171,8 +195,11 @@ func TestRangeFloat64Valid(t *testing.T) {
 
 func TestRangeFloat64Error(t *testing.T) {
 	r := rule.Range[float64](0.0, 1.0)
-	if err := r(1.1); err == nil {
+	err := r(1.1)
+	if err == nil {
 		t.Errorf("Error expected for float above range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -194,15 +221,21 @@ func TestLessThanIntValid(t *testing.T) {
 
 func TestLessThanIntEqualError(t *testing.T) {
 	r := rule.LessThan[int](10)
-	if err := r(10); err == nil {
+	err := r(10)
+	if err == nil {
 		t.Errorf("Error expected when value equals the bound (strict less than)")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestLessThanIntError(t *testing.T) {
 	r := rule.LessThan[int](10)
-	if err := r(11); err == nil {
+	err := r(11)
+	if err == nil {
 		t.Errorf("Error expected for value not less than bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -239,8 +272,11 @@ func TestLessThanEqualIntBelow(t *testing.T) {
 
 func TestLessThanEqualIntError(t *testing.T) {
 	r := rule.LessThanEqual[int](10)
-	if err := r(11); err == nil {
+	err := r(11)
+	if err == nil {
 		t.Errorf("Error expected for value above bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -269,15 +305,21 @@ func TestGreaterThanIntValid(t *testing.T) {
 
 func TestGreaterThanIntEqualError(t *testing.T) {
 	r := rule.GreaterThan[int](5)
-	if err := r(5); err == nil {
+	err := r(5)
+	if err == nil {
 		t.Errorf("Error expected when value equals bound (strict greater than)")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestGreaterThanIntError(t *testing.T) {
 	r := rule.GreaterThan[int](5)
-	if err := r(4); err == nil {
+	err := r(4)
+	if err == nil {
 		t.Errorf("Error expected for value not greater than bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -299,8 +341,11 @@ func TestGreaterThanCustomType(t *testing.T) {
 func TestGreaterThanCustomTypeError(t *testing.T) {
 	type Age int
 	r := rule.GreaterThan[Age](17)
-	if err := r(Age(17)); err == nil {
+	err := r(Age(17))
+	if err == nil {
 		t.Errorf("Error expected for non-strictly-greater value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -322,8 +367,11 @@ func TestGreaterThanEqualIntAbove(t *testing.T) {
 
 func TestGreaterThanEqualIntError(t *testing.T) {
 	r := rule.GreaterThanEqual[int](5)
-	if err := r(4); err == nil {
+	err := r(4)
+	if err == nil {
 		t.Errorf("Error expected for value below bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -336,8 +384,11 @@ func TestGreaterThanEqualFloat64(t *testing.T) {
 
 func TestGreaterThanEqualString(t *testing.T) {
 	r := rule.GreaterThanEqual[string]("b")
-	if err := r("a"); err == nil {
+	err := r("a")
+	if err == nil {
 		t.Errorf("Error expected for string less than bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -352,15 +403,21 @@ func TestPositiveInt(t *testing.T) {
 
 func TestPositiveIntError(t *testing.T) {
 	r := rule.Positive[int]()
-	if err := r(-1); err == nil {
+	err := r(-1)
+	if err == nil {
 		t.Errorf("Error expected for negative int")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestPositiveZeroError(t *testing.T) {
 	r := rule.Positive[int]()
-	if err := r(0); err == nil {
+	err := r(0)
+	if err == nil {
 		t.Errorf("Error expected for zero (not positive)")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -373,15 +430,21 @@ func TestPositiveFloat64(t *testing.T) {
 
 func TestPositiveFloat64Error(t *testing.T) {
 	r := rule.Positive[float64]()
-	if err := r(-0.5); err == nil {
+	err := r(-0.5)
+	if err == nil {
 		t.Errorf("Error expected for negative float64")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestPositiveFloat64ZeroError(t *testing.T) {
 	r := rule.Positive[float64]()
-	if err := r(0.0); err == nil {
+	err := r(0.0)
+	if err == nil {
 		t.Errorf("Error expected for zero float64 (not positive)")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -396,8 +459,11 @@ func TestPositiveCustomIntType(t *testing.T) {
 func TestPositiveCustomIntTypeError(t *testing.T) {
 	type MyInt int
 	r := rule.Positive[MyInt]()
-	if err := r(MyInt(-3)); err == nil {
+	err := r(MyInt(-3))
+	if err == nil {
 		t.Errorf("Error expected for negative custom type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -412,8 +478,11 @@ func TestPositiveCustomFloatType(t *testing.T) {
 func TestPositiveCustomFloatTypeError(t *testing.T) {
 	type Celsius float64
 	r := rule.Positive[Celsius]()
-	if err := r(Celsius(-10.0)); err == nil {
+	err := r(Celsius(-10.0))
+	if err == nil {
 		t.Errorf("Error expected for negative custom float type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -435,8 +504,11 @@ func TestPositiveOrZeroIntPositive(t *testing.T) {
 
 func TestPositiveOrZeroIntError(t *testing.T) {
 	r := rule.PositiveOrZero[int]()
-	if err := r(-1); err == nil {
+	err := r(-1)
+	if err == nil {
 		t.Errorf("Error expected for negative value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -456,8 +528,11 @@ func TestPositiveOrZeroFloat64Positive(t *testing.T) {
 
 func TestPositiveOrZeroFloat64Error(t *testing.T) {
 	r := rule.PositiveOrZero[float64]()
-	if err := r(-0.001); err == nil {
+	err := r(-0.001)
+	if err == nil {
 		t.Errorf("Error expected for negative float64")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -480,15 +555,21 @@ func TestNegativeInt(t *testing.T) {
 
 func TestNegativeIntError(t *testing.T) {
 	r := rule.Negative[int]()
-	if err := r(1); err == nil {
+	err := r(1)
+	if err == nil {
 		t.Errorf("Error expected for positive int")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNegativeZeroError(t *testing.T) {
 	r := rule.Negative[int]()
-	if err := r(0); err == nil {
+	err := r(0)
+	if err == nil {
 		t.Errorf("Error expected for zero (not negative)")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -501,8 +582,11 @@ func TestNegativeFloat64(t *testing.T) {
 
 func TestNegativeFloat64Error(t *testing.T) {
 	r := rule.Negative[float64]()
-	if err := r(1.5); err == nil {
+	err := r(1.5)
+	if err == nil {
 		t.Errorf("Error expected for positive float64")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -525,8 +609,11 @@ func TestNegativeCustomFloatType(t *testing.T) {
 func TestNegativeCustomFloatTypeError(t *testing.T) {
 	type Offset float64
 	r := rule.Negative[Offset]()
-	if err := r(Offset(1.0)); err == nil {
+	err := r(Offset(1.0))
+	if err == nil {
 		t.Errorf("Error expected for positive custom float type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -548,8 +635,11 @@ func TestNegativeOrZeroIntNegative(t *testing.T) {
 
 func TestNegativeOrZeroIntError(t *testing.T) {
 	r := rule.NegativeOrZero[int]()
-	if err := r(1); err == nil {
+	err := r(1)
+	if err == nil {
 		t.Errorf("Error expected for positive value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -569,16 +659,22 @@ func TestNegativeOrZeroFloat64Negative(t *testing.T) {
 
 func TestNegativeOrZeroFloat64Error(t *testing.T) {
 	r := rule.NegativeOrZero[float64]()
-	if err := r(0.001); err == nil {
+	err := r(0.001)
+	if err == nil {
 		t.Errorf("Error expected for positive float64")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNegativeOrZeroCustomType(t *testing.T) {
 	type Adjustment float32
 	r := rule.NegativeOrZero[Adjustment]()
-	if err := r(Adjustment(5)); err == nil {
+	err := r(Adjustment(5))
+	if err == nil {
 		t.Errorf("Error expected for positive custom type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -600,22 +696,31 @@ func TestNotInRangeBelowMin(t *testing.T) {
 
 func TestNotInRangeAtMinError(t *testing.T) {
 	r := rule.NotInRange[int](1, 10)
-	if err := r(1); err == nil {
+	err := r(1)
+	if err == nil {
 		t.Errorf("Error expected for value at lower bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNotInRangeAtMaxError(t *testing.T) {
 	r := rule.NotInRange[int](1, 10)
-	if err := r(10); err == nil {
+	err := r(10)
+	if err == nil {
 		t.Errorf("Error expected for value at upper bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNotInRangeInsideError(t *testing.T) {
 	r := rule.NotInRange[int](1, 10)
-	if err := r(5); err == nil {
+	err := r(5)
+	if err == nil {
 		t.Errorf("Error expected for value inside range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -637,7 +742,10 @@ func TestNotInRangeCustomType(t *testing.T) {
 func TestNotInRangeCustomTypeError(t *testing.T) {
 	type Port int
 	r := rule.NotInRange[Port](1024, 49151)
-	if err := r(Port(8080)); err == nil {
+	err := r(Port(8080))
+	if err == nil {
 		t.Errorf("Error expected for registered port inside range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

@@ -19,8 +19,11 @@ func TestIsNilIntNil(t *testing.T) {
 func TestIsNilIntError(t *testing.T) {
 	r := rule.IsNil[int]()
 	v := 42
-	if err := r(&v); err == nil {
+	err := r(&v)
+	if err == nil {
 		t.Errorf("Error expected for non-nil pointer")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -35,8 +38,11 @@ func TestIsNilStringNil(t *testing.T) {
 func TestIsNilStringError(t *testing.T) {
 	r := rule.IsNil[string]()
 	s := "hello"
-	if err := r(&s); err == nil {
+	err := r(&s)
+	if err == nil {
 		t.Errorf("Error expected for non-nil string pointer")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -53,8 +59,11 @@ func TestIsNilStructError(t *testing.T) {
 	type User struct{ Name string }
 	r := rule.IsNil[User]()
 	u := User{Name: "Alice"}
-	if err := r(&u); err == nil {
+	err := r(&u)
+	if err == nil {
 		t.Errorf("Error expected for non-nil struct pointer")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -71,8 +80,11 @@ func TestIsNotNilInt(t *testing.T) {
 func TestIsNotNilIntError(t *testing.T) {
 	r := rule.IsNotNil[int]()
 	var p *int = nil
-	if err := r(p); err == nil {
+	err := r(p)
+	if err == nil {
 		t.Errorf("Error expected for nil pointer")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -87,8 +99,11 @@ func TestIsNotNilString(t *testing.T) {
 func TestIsNotNilStringError(t *testing.T) {
 	r := rule.IsNotNil[string]()
 	var p *string = nil
-	if err := r(p); err == nil {
+	err := r(p)
+	if err == nil {
 		t.Errorf("Error expected for nil string pointer")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -103,7 +118,10 @@ func TestIsNotNilBool(t *testing.T) {
 func TestIsNotNilBoolError(t *testing.T) {
 	r := rule.IsNotNil[bool]()
 	var p *bool = nil
-	if err := r(p); err == nil {
+	err := r(p)
+	if err == nil {
 		t.Errorf("Error expected for nil bool pointer")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

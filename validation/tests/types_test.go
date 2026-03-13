@@ -306,3 +306,137 @@ func TestValidatableImplementsInterface(t *testing.T) {
 	var _ validation.Validatable = Address{}
 	var _ validation.Validatable = Order{}
 }
+
+// --- Nested ---
+
+type LineItem struct {
+	Name     string
+	Quantity int
+}
+
+func (l LineItem) Validation() validation.Validation {
+	return validation.NewValidations("lineItem",
+		validation.Value("name", l.Name, rule.IsNotZeroValue[string]()),
+		validation.Value("quantity", l.Quantity, rule.Positive[int]()),
+	)
+}
+
+func TestNestedName(t *testing.T) {
+	item := LineItem{Name: "widget", Quantity: 3}
+	v := validation.Nested("item", item)
+	if v.Name() != "item" {
+		t.Errorf("Expected name 'item', got: %v", v.Name())
+	}
+}
+
+func TestNestedValidateNoError(t *testing.T) {
+	item := LineItem{Name: "widget", Quantity: 3}
+	v := validation.Nested("item", item)
+	if err := v.Validate(); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNestedValidateInnerFieldFails(t *testing.T) {
+	item := LineItem{Name: "", Quantity: 3}
+	v := validation.Nested("item", item)
+	if err := v.Validate(); err == nil {
+		t.Errorf("Error expected for empty name")
+	}
+}
+
+func TestNestedValidateOuterRuleFails(t *testing.T) {
+	// outer rule always fails; inner struct is valid
+	item := LineItem{Name: "widget", Quantity: 3}
+	reject := func(LineItem) *types.ValidationError {
+		return types.NewValidationError("rejected")
+	}
+	v := validation.Nested("item", item, reject)
+	if err := v.Validate(); err == nil {
+		t.Errorf("Error expected from outer rule")
+	}
+}
+
+func TestNestedValidateOuterRuleCheckedFirst(t *testing.T) {
+	// outer rule fails; inner struct is also invalid — outer should surface first
+	item := LineItem{Name: "", Quantity: -1}
+	outerFired := false
+	outer := func(LineItem) *types.ValidationError {
+		outerFired = true
+		return types.NewValidationError("outer failed")
+	}
+	v := validation.Nested("item", item, outer)
+	err := v.Validate()
+	if !outerFired {
+		t.Errorf("Expected outer rule to be called")
+	}
+	if err == nil {
+		t.Errorf("Error expected")
+	}
+}
+
+func TestNestedValidateAllNoErrors(t *testing.T) {
+	item := LineItem{Name: "widget", Quantity: 3}
+	v := validation.Nested("item", item)
+	errs := v.ValidateAll()
+	if len(errs) != 0 {
+		t.Errorf("No errors expected, got: %v", errs)
+	}
+}
+
+func TestNestedValidateAllCollectsOuterAndInnerErrors(t *testing.T) {
+	// outer rule fails + both inner fields fail
+	item := LineItem{Name: "", Quantity: -1}
+	reject := func(LineItem) *types.ValidationError {
+		return types.NewValidationError("rejected")
+	}
+	v := validation.Nested("item", item, reject)
+	errs := v.ValidateAll()
+	if len(errs) < 3 {
+		t.Errorf("Expected at least 3 errors (1 outer + 2 inner), got: %d", len(errs))
+	}
+}
+
+func TestNestedValidateAllOnlyInnerErrors(t *testing.T) {
+	// no outer rules; both inner fields fail
+	item := LineItem{Name: "", Quantity: -1}
+	v := validation.Nested("item", item)
+	errs := v.ValidateAll()
+	if len(errs) != 2 {
+		t.Errorf("Expected 2 inner errors, got: %d", len(errs))
+	}
+}
+
+type Invoice struct {
+	ID   int
+	Item LineItem
+}
+
+func (i Invoice) Validation() validation.Validation {
+	return validation.NewValidations("invoice",
+		validation.Value("ID", i.ID, rule.Positive[int]()),
+		validation.Nested("item", i.Item),
+	)
+}
+
+func TestNestedInsideNewValidations(t *testing.T) {
+	inv := Invoice{ID: 1, Item: LineItem{Name: "bolt", Quantity: 10}}
+	if err := inv.Validation().Validate(); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestNestedInsideNewValidationsInnerFails(t *testing.T) {
+	inv := Invoice{ID: 1, Item: LineItem{Name: "", Quantity: 10}}
+	if err := inv.Validation().Validate(); err == nil {
+		t.Errorf("Error expected for invalid nested item")
+	}
+}
+
+func TestNestedValidateSkipsNilOuterRule(t *testing.T) {
+	item := LineItem{Name: "widget", Quantity: 3}
+	v := validation.Nested("item", item, nil)
+	if err := v.Validate(); err != nil {
+		t.Errorf("No errors expected when nil rule is skipped, got: %v", err)
+	}
+}

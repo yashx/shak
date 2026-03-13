@@ -23,6 +23,8 @@ func TestForEachValueError(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -41,6 +43,8 @@ func TestForEachValueErrorContainsKey(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 	if err.Path != "[badkey]" {
 		t.Errorf("Expected path [badkey], got: %v", err.Path)
@@ -74,6 +78,8 @@ func TestForKeyError(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -83,6 +89,8 @@ func TestForKeyErrorContainsKey(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 	if err.Path != "[age]" {
 		t.Errorf("Expected path [age], got: %v", err.Path)
@@ -95,6 +103,8 @@ func TestForKeyMissingKey(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected for missing key, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -104,6 +114,8 @@ func TestForKeyMissingKeyErrorPath(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Fatalf("Error expected for missing key, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 	if err.Path != "[score]" {
 		t.Errorf("Expected path [score], got: %v", err.Path)
@@ -123,8 +135,11 @@ func TestForKeyZeroValueExplicitlySetFails(t *testing.T) {
 	// key exists with zero value but fails the rule — should return rule error, not missing-key error
 	m := map[string]int{"count": 0}
 	r := rule.ForKey(&m,"count", rule.Positive[int]())
-	if err := r(m); err == nil {
+	err := r(m)
+	if err == nil {
 		t.Errorf("Error expected when explicitly set zero value fails rule")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -164,6 +179,8 @@ func TestLengthMapError(t *testing.T) {
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -186,6 +203,31 @@ func TestLengthMapCustomType(t *testing.T) {
 	}
 }
 
+func TestForEachValueIsValid(t *testing.T) {
+	m := map[string]product{
+		"a": {Name: "Widget", Price: 9.99},
+		"b": {Name: "Gadget", Price: 4.99},
+	}
+	r := rule.ForEachValue(&m, rule.IsValid[product]())
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestForEachValueIsValidOneInvalid(t *testing.T) {
+	m := map[string]product{
+		"a": {Name: "Widget", Price: 9.99},
+		"b": {Name: "", Price: 4.99},
+	}
+	r := rule.ForEachValue(&m, rule.IsValid[product]())
+	err := r(m)
+	if err == nil {
+		t.Errorf("Error expected for invalid product, got nil")
+	} else {
+		t.Logf("got error: %v", err)
+	}
+}
+
 // EqualMap
 
 func TestEqualMapValid(t *testing.T) {
@@ -199,8 +241,11 @@ func TestEqualMapValid(t *testing.T) {
 func TestEqualMapError(t *testing.T) {
 	m := map[string]int{"a": 1}
 	r := rule.EqualMap(map[string]int{"a": 2})
-	if err := r(m); err == nil {
+	err := r(m)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -215,8 +260,11 @@ func TestEqualMapEmpty(t *testing.T) {
 func TestEqualMapDifferentKeys(t *testing.T) {
 	m := map[string]int{"a": 1}
 	r := rule.EqualMap(map[string]int{"b": 1})
-	if err := r(m); err == nil {
+	err := r(m)
+	if err == nil {
 		t.Errorf("Error expected for maps with different keys, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -242,8 +290,11 @@ func TestEqualMapFuncValid(t *testing.T) {
 func TestEqualMapFuncError(t *testing.T) {
 	m := map[string]int{"a": 1}
 	r := rule.EqualMapFunc(&m, map[string]int{"a": 2}, func(a, b int) bool { return a == b })
-	if err := r(m); err == nil {
+	err := r(m)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -259,7 +310,10 @@ func TestEqualMapFuncCustomEquality(t *testing.T) {
 func TestEqualMapFuncCustomEqualityError(t *testing.T) {
 	m := map[string]int{"a": 1}
 	r := rule.EqualMapFunc(&m, map[string]float64{"a": 1.9}, func(a int, b float64) bool { return float64(a) == b })
-	if err := r(m); err == nil {
+	err := r(m)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

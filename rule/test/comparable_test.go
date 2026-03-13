@@ -17,8 +17,11 @@ func TestIsZeroValueInt(t *testing.T) {
 
 func TestIsZeroValueIntError(t *testing.T) {
 	r := rule.IsZeroValue[int]()
-	if err := r(1); err == nil {
+	err := r(1)
+	if err == nil {
 		t.Errorf("Error expected for non-zero int")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -31,8 +34,11 @@ func TestIsZeroValueString(t *testing.T) {
 
 func TestIsZeroValueStringError(t *testing.T) {
 	r := rule.IsZeroValue[string]()
-	if err := r("hello"); err == nil {
+	err := r("hello")
+	if err == nil {
 		t.Errorf("Error expected for non-empty string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -45,8 +51,11 @@ func TestIsZeroValueBool(t *testing.T) {
 
 func TestIsZeroValueBoolError(t *testing.T) {
 	r := rule.IsZeroValue[bool]()
-	if err := r(true); err == nil {
+	err := r(true)
+	if err == nil {
 		t.Errorf("Error expected for true")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -69,8 +78,11 @@ func TestIsNotZeroValueInt(t *testing.T) {
 
 func TestIsNotZeroValueIntError(t *testing.T) {
 	r := rule.IsNotZeroValue[int]()
-	if err := r(0); err == nil {
+	err := r(0)
+	if err == nil {
 		t.Errorf("Error expected for zero int")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -83,8 +95,11 @@ func TestIsNotZeroValueString(t *testing.T) {
 
 func TestIsNotZeroValueStringError(t *testing.T) {
 	r := rule.IsNotZeroValue[string]()
-	if err := r(""); err == nil {
+	err := r("")
+	if err == nil {
 		t.Errorf("Error expected for empty string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -97,8 +112,11 @@ func TestIsNotZeroValueFloat64(t *testing.T) {
 
 func TestIsNotZeroValueFloat64Error(t *testing.T) {
 	r := rule.IsNotZeroValue[float64]()
-	if err := r(0.0); err == nil {
+	err := r(0.0)
+	if err == nil {
 		t.Errorf("Error expected for zero float64")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -113,8 +131,11 @@ func TestEqualInt(t *testing.T) {
 
 func TestEqualIntError(t *testing.T) {
 	r := rule.Equal[int](10)
-	if err := r(11); err == nil {
+	err := r(11)
+	if err == nil {
 		t.Errorf("Error expected for unequal int")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -127,8 +148,11 @@ func TestEqualString(t *testing.T) {
 
 func TestEqualStringError(t *testing.T) {
 	r := rule.Equal[string]("go")
-	if err := r("rust"); err == nil {
+	err := r("rust")
+	if err == nil {
 		t.Errorf("Error expected for unequal string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -150,8 +174,11 @@ func TestNotEqualInt(t *testing.T) {
 
 func TestNotEqualIntError(t *testing.T) {
 	r := rule.NotEqual[int](0)
-	if err := r(0); err == nil {
+	err := r(0)
+	if err == nil {
 		t.Errorf("Error expected when value equals forbidden value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -164,8 +191,11 @@ func TestNotEqualString(t *testing.T) {
 
 func TestNotEqualStringError(t *testing.T) {
 	r := rule.NotEqual[string]("admin")
-	if err := r("admin"); err == nil {
+	err := r("admin")
+	if err == nil {
 		t.Errorf("Error expected when value equals forbidden string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -187,8 +217,11 @@ func TestEqualToAnyInt(t *testing.T) {
 
 func TestEqualToAnyIntError(t *testing.T) {
 	r := rule.EqualToAny[int](1, 2, 3)
-	if err := r(99); err == nil {
+	err := r(99)
+	if err == nil {
 		t.Errorf("Error expected for value not in list")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -201,8 +234,11 @@ func TestEqualToAnyString(t *testing.T) {
 
 func TestEqualToAnyStringError(t *testing.T) {
 	r := rule.EqualToAny[string]("red", "green", "blue")
-	if err := r("purple"); err == nil {
+	err := r("purple")
+	if err == nil {
 		t.Errorf("Error expected for value not in list")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -225,8 +261,11 @@ func TestNotEqualToAnyInt(t *testing.T) {
 
 func TestNotEqualToAnyIntError(t *testing.T) {
 	r := rule.NotEqualToAny[int](0, -1)
-	if err := r(0); err == nil {
+	err := r(0)
+	if err == nil {
 		t.Errorf("Error expected when value is in forbidden list")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -239,8 +278,11 @@ func TestNotEqualToAnyString(t *testing.T) {
 
 func TestNotEqualToAnyStringError(t *testing.T) {
 	r := rule.NotEqualToAny[string]("root", "admin")
-	if err := r("admin"); err == nil {
+	err := r("admin")
+	if err == nil {
 		t.Errorf("Error expected when value is in forbidden list")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 

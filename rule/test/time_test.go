@@ -25,8 +25,11 @@ func TestBeforeValid(t *testing.T) {
 
 func TestBeforeError(t *testing.T) {
 	r := rule.Before(epoch)
-	if err := r(future); err == nil {
+	err := r(future)
+	if err == nil {
 		t.Errorf("Error expected for time after bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -48,8 +51,11 @@ func TestAfterValid(t *testing.T) {
 
 func TestAfterError(t *testing.T) {
 	r := rule.After(epoch)
-	if err := r(past); err == nil {
+	err := r(past)
+	if err == nil {
 		t.Errorf("Error expected for time before bound")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -85,15 +91,21 @@ func TestBetweenAtMax(t *testing.T) {
 
 func TestBetweenBeforeMinError(t *testing.T) {
 	r := rule.Between(epoch, future)
-	if err := r(past); err == nil {
+	err := r(past)
+	if err == nil {
 		t.Errorf("Error expected for time before range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestBetweenAfterMaxError(t *testing.T) {
 	r := rule.Between(past, epoch)
-	if err := r(future); err == nil {
+	err := r(future)
+	if err == nil {
 		t.Errorf("Error expected for time after range")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -108,8 +120,11 @@ func TestInThePastValid(t *testing.T) {
 
 func TestInThePastError(t *testing.T) {
 	r := rule.InThePast()
-	if err := r(future); err == nil {
+	err := r(future)
+	if err == nil {
 		t.Errorf("Error expected for future time")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -124,8 +139,11 @@ func TestInTheFutureValid(t *testing.T) {
 
 func TestInTheFutureError(t *testing.T) {
 	r := rule.InTheFuture()
-	if err := r(past); err == nil {
+	err := r(past)
+	if err == nil {
 		t.Errorf("Error expected for past time")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -140,8 +158,11 @@ func TestOnDateValid(t *testing.T) {
 
 func TestOnDateError(t *testing.T) {
 	r := rule.OnDate(epoch)
-	if err := r(past); err == nil {
+	err := r(past)
+	if err == nil {
 		t.Errorf("Error expected for different date")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -161,7 +182,10 @@ func TestOnDateTimezoneError(t *testing.T) {
 	ref := time.Date(2000, 1, 1, 0, 0, 0, 0, loc)          // 2000-01-01 in UTC+9
 	value := time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC)  // 2000-01-02 in UTC+9
 	r := rule.OnDate(ref)
-	if err := r(value); err == nil {
+	err := r(value)
+	if err == nil {
 		t.Errorf("Error expected when value falls on different date in ref timezone")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

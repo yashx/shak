@@ -113,3 +113,48 @@ func (s *validationsHolder) ValidateAll() []*types.ValidationError {
 	}
 	return errors
 }
+
+type nestedValidation[T Validatable] struct {
+	name  string
+	value T
+	rules []types.Rule[T]
+}
+
+func Nested[T Validatable](name string, value T, rules ...types.Rule[T]) Validation {
+	return &nestedValidation[T]{
+		name:  name,
+		value: value,
+		rules: rules,
+	}
+}
+
+func (v *nestedValidation[T]) Name() string {
+	return v.name
+}
+
+func (v *nestedValidation[T]) Validate() *types.ValidationError {
+	for _, r := range v.rules {
+		if r == nil {
+			continue
+		}
+		if err := r(v.value); err != nil {
+			return types.NewValidationErrorWithParentName(v.Name(), err)
+		}
+	}
+	return v.value.Validation().Validate()
+}
+
+func (v *nestedValidation[T]) ValidateAll() []*types.ValidationError {
+	var errors []*types.ValidationError
+	for _, r := range v.rules {
+		if r == nil {
+			continue
+		}
+		if err := r(v.value); err != nil {
+			errors = append(errors, types.NewValidationErrorWithParentName(v.Name(), err))
+		}
+	}
+
+	errors = append(errors, v.value.Validation().ValidateAll()...)
+	return errors
+}

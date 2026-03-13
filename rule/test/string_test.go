@@ -18,8 +18,11 @@ func TestLengthStringValid(t *testing.T) {
 
 func TestLengthStringError(t *testing.T) {
 	r := rule.LengthString[string](5)
-	if err := r("hi"); err == nil {
+	err := r("hi")
+	if err == nil {
 		t.Errorf("Error expected for wrong byte length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -41,8 +44,11 @@ func TestLengthStringCustomType(t *testing.T) {
 func TestLengthStringCustomTypeError(t *testing.T) {
 	type Username string
 	r := rule.LengthString[Username](3)
-	if err := r(Username("yash")); err == nil {
+	err := r(Username("yash"))
+	if err == nil {
 		t.Errorf("Error expected for wrong length custom string type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -57,8 +63,11 @@ func TestLengthRuneASCII(t *testing.T) {
 
 func TestLengthRuneASCIIError(t *testing.T) {
 	r := rule.LengthRune[string](3)
-	if err := r("hello"); err == nil {
+	err := r("hello")
+	if err == nil {
 		t.Errorf("Error expected for wrong rune count")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -81,8 +90,11 @@ func TestLengthRuneCustomType(t *testing.T) {
 func TestLengthRuneCustomTypeError(t *testing.T) {
 	type Bio string
 	r := rule.LengthRune[Bio](2)
-	if err := r(Bio("日本語")); err == nil {
+	err := r(Bio("日本語"))
+	if err == nil {
 		t.Errorf("Error expected for wrong rune count on custom type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -99,8 +111,11 @@ func TestMatchStringValid(t *testing.T) {
 func TestMatchStringError(t *testing.T) {
 	re := regexp.MustCompile(`^\d{3}-\d{4}$`)
 	r := rule.MatchString[string](re)
-	if err := r("abc"); err == nil {
+	err := r("abc")
+	if err == nil {
 		t.Errorf("Error expected for non-matching string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -117,8 +132,11 @@ func TestMatchStringCustomTypeError(t *testing.T) {
 	type Email string
 	re := regexp.MustCompile(`^[^@]+@[^@]+$`)
 	r := rule.MatchString[Email](re)
-	if err := r(Email("not-an-email")); err == nil {
+	err := r(Email("not-an-email"))
+	if err == nil {
 		t.Errorf("Error expected for invalid email format")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -140,8 +158,11 @@ func TestEqualIgnoreCaseMixed(t *testing.T) {
 
 func TestEqualIgnoreCaseError(t *testing.T) {
 	r := rule.EqualIgnoreCase[string]("go")
-	if err := r("rust"); err == nil {
+	err := r("rust")
+	if err == nil {
 		t.Errorf("Error expected for non-matching string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -164,15 +185,21 @@ func TestNotEqualIgnoreCaseValid(t *testing.T) {
 
 func TestNotEqualIgnoreCaseError(t *testing.T) {
 	r := rule.NotEqualIgnoreCase[string]("admin")
-	if err := r("ADMIN"); err == nil {
+	err := r("ADMIN")
+	if err == nil {
 		t.Errorf("Error expected when strings are equal ignoring case")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNotEqualIgnoreCaseCaseSensitiveError(t *testing.T) {
 	r := rule.NotEqualIgnoreCase[string]("root")
-	if err := r("Root"); err == nil {
+	err := r("Root")
+	if err == nil {
 		t.Errorf("Error expected for case-insensitive match")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -187,8 +214,11 @@ func TestNotEqualIgnoreCaseCustomType(t *testing.T) {
 func TestNotEqualIgnoreCaseCustomTypeError(t *testing.T) {
 	type Role string
 	r := rule.NotEqualIgnoreCase[Role]("superuser")
-	if err := r(Role("SUPERUSER")); err == nil {
+	err := r(Role("SUPERUSER"))
+	if err == nil {
 		t.Errorf("Error expected for case-insensitive match on custom type")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -210,8 +240,11 @@ func TestMinLengthStringAtBound(t *testing.T) {
 
 func TestMinLengthStringError(t *testing.T) {
 	r := rule.MinLengthString[string](10)
-	if err := r("hi"); err == nil {
+	err := r("hi")
+	if err == nil {
 		t.Errorf("Error expected for string below min length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -241,8 +274,11 @@ func TestMaxLengthStringAtBound(t *testing.T) {
 
 func TestMaxLengthStringError(t *testing.T) {
 	r := rule.MaxLengthString[string](3)
-	if err := r("hello"); err == nil {
+	err := r("hello")
+	if err == nil {
 		t.Errorf("Error expected for string above max length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -265,8 +301,11 @@ func TestMinLengthRuneValid(t *testing.T) {
 
 func TestMinLengthRuneError(t *testing.T) {
 	r := rule.MinLengthRune[string](10)
-	if err := r("hi"); err == nil {
+	err := r("hi")
+	if err == nil {
 		t.Errorf("Error expected for string below min rune length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -296,8 +335,11 @@ func TestMaxLengthRuneValid(t *testing.T) {
 
 func TestMaxLengthRuneError(t *testing.T) {
 	r := rule.MaxLengthRune[string](2)
-	if err := r("日本語"); err == nil {
+	err := r("日本語")
+	if err == nil {
 		t.Errorf("Error expected for string above max rune length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -329,8 +371,11 @@ func TestNotMatchStringValid(t *testing.T) {
 func TestNotMatchStringError(t *testing.T) {
 	re := regexp.MustCompile(`\d`)
 	r := rule.NotMatchString[string](re)
-	if err := r("hello123"); err == nil {
+	err := r("hello123")
+	if err == nil {
 		t.Errorf("Error expected for string matching pattern")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -354,8 +399,11 @@ func TestNotContainsStringValid(t *testing.T) {
 
 func TestNotContainsStringError(t *testing.T) {
 	r := rule.NotContainsString[string]("bad")
-	if err := r("this is bad"); err == nil {
+	err := r("this is bad")
+	if err == nil {
 		t.Errorf("Error expected for string containing substr")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -378,8 +426,11 @@ func TestNotHasPrefixValid(t *testing.T) {
 
 func TestNotHasPrefixError(t *testing.T) {
 	r := rule.NotHasPrefix[string]("tmp_")
-	if err := r("tmp_file"); err == nil {
+	err := r("tmp_file")
+	if err == nil {
 		t.Errorf("Error expected for string with forbidden prefix")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -402,8 +453,11 @@ func TestNotHasSuffixValid(t *testing.T) {
 
 func TestNotHasSuffixError(t *testing.T) {
 	r := rule.NotHasSuffix[string](".tmp")
-	if err := r("draft.tmp"); err == nil {
+	err := r("draft.tmp")
+	if err == nil {
 		t.Errorf("Error expected for string with forbidden suffix")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -426,8 +480,11 @@ func TestNotContainsAnyCharValid(t *testing.T) {
 
 func TestNotContainsAnyCharError(t *testing.T) {
 	r := rule.NotContainsAnyChar[string](" \t\n")
-	if err := r("has space"); err == nil {
+	err := r("has space")
+	if err == nil {
 		t.Errorf("Error expected for string containing forbidden char")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -450,8 +507,11 @@ func TestNotContainsRuneValid(t *testing.T) {
 
 func TestNotContainsRuneError(t *testing.T) {
 	r := rule.NotContainsRune[string]('@')
-	if err := r("user@example.com"); err == nil {
+	err := r("user@example.com")
+	if err == nil {
 		t.Errorf("Error expected for string containing forbidden rune")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -481,8 +541,11 @@ func TestIsBlankWhitespaceValid(t *testing.T) {
 
 func TestIsBlankError(t *testing.T) {
 	r := rule.IsBlank[string]()
-	if err := r("hello"); err == nil {
+	err := r("hello")
+	if err == nil {
 		t.Errorf("Error expected for non-blank string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -505,8 +568,11 @@ func TestContainsStringValid(t *testing.T) {
 
 func TestContainsStringError(t *testing.T) {
 	r := rule.ContainsString[string]("world")
-	if err := r("hello"); err == nil {
+	err := r("hello")
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -536,8 +602,11 @@ func TestHasPrefixValid(t *testing.T) {
 
 func TestHasPrefixError(t *testing.T) {
 	r := rule.HasPrefix[string]("world")
-	if err := r("hello world"); err == nil {
+	err := r("hello world")
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -567,8 +636,11 @@ func TestHasSuffixValid(t *testing.T) {
 
 func TestHasSuffixError(t *testing.T) {
 	r := rule.HasSuffix[string](".go")
-	if err := r("main.rs"); err == nil {
+	err := r("main.rs")
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -591,8 +663,11 @@ func TestContainsAnyCharValid(t *testing.T) {
 
 func TestContainsAnyCharError(t *testing.T) {
 	r := rule.ContainsAnyChar[string]("aeiou")
-	if err := r("rhythm"); err == nil {
+	err := r("rhythm")
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -615,8 +690,11 @@ func TestContainsRuneValid(t *testing.T) {
 
 func TestContainsRuneError(t *testing.T) {
 	r := rule.ContainsRune[string]('!')
-	if err := r("hello"); err == nil {
+	err := r("hello")
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -646,22 +724,31 @@ func TestNotBlankValid(t *testing.T) {
 
 func TestNotBlankError(t *testing.T) {
 	r := rule.NotBlank[string]()
-	if err := r(""); err == nil {
+	err := r("")
+	if err == nil {
 		t.Errorf("Error expected for empty string, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNotBlankWhitespaceError(t *testing.T) {
 	r := rule.NotBlank[string]()
-	if err := r("   "); err == nil {
+	err := r("   ")
+	if err == nil {
 		t.Errorf("Error expected for whitespace-only string, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestNotBlankTabsAndNewlines(t *testing.T) {
 	r := rule.NotBlank[string]()
-	if err := r("\t\n"); err == nil {
+	err := r("\t\n")
+	if err == nil {
 		t.Errorf("Error expected for tab/newline-only string, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 

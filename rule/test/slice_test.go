@@ -20,8 +20,11 @@ func TestForEachIntValid(t *testing.T) {
 func TestForEachIntError(t *testing.T) {
 	s := []int{5, -1, 10}
 	r := rule.ForEach(&s,rule.Positive[int]())
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice containing negative value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -31,6 +34,8 @@ func TestForEachErrorContainsIndex(t *testing.T) {
 	err := r(s)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 	if err.Path != "[1]" {
 		t.Errorf("Expected path [1], got: %v", err.Path)
@@ -56,8 +61,11 @@ func TestForEachStringValid(t *testing.T) {
 func TestForEachStringError(t *testing.T) {
 	s := []string{"hello", "", "world"}
 	r := rule.ForEach(&s,rule.IsNotZeroValue[string]())
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice containing empty string")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -76,6 +84,8 @@ func TestForEachStopsAtFirstError(t *testing.T) {
 	err := r(s)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 	// should report the first failing index
 	if err.Path != "[0]" {
@@ -96,8 +106,11 @@ func TestLengthSliceIntValid(t *testing.T) {
 func TestLengthSliceIntError(t *testing.T) {
 	s := []int{1, 2}
 	r := rule.LengthSlice(&s, 5)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for wrong length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -130,8 +143,11 @@ func TestLengthSliceCustomTypeError(t *testing.T) {
 	type Tags []string
 	s := Tags{"go"}
 	r := rule.LengthSlice(&s, 3)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for wrong length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -156,8 +172,11 @@ func TestMinLengthSliceAtBound(t *testing.T) {
 func TestMinLengthSliceError(t *testing.T) {
 	s := []int{1}
 	r := rule.MinLengthSlice(&s, 3)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice below min length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -191,8 +210,11 @@ func TestMaxLengthSliceAtBound(t *testing.T) {
 func TestMaxLengthSliceError(t *testing.T) {
 	s := []int{1, 2, 3, 4}
 	r := rule.MaxLengthSlice(&s, 3)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice above max length")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -218,8 +240,11 @@ func TestNotContainsElemValid(t *testing.T) {
 func TestNotContainsElemError(t *testing.T) {
 	s := []int{1, 2, 3}
 	r := rule.NotContainsElem(&s, 2)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice containing forbidden element")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -253,8 +278,11 @@ func TestNotMatchBytesValid(t *testing.T) {
 func TestNotMatchBytesError(t *testing.T) {
 	re := regexp.MustCompile(`\d`)
 	r := rule.NotMatchBytes[[]byte](re)
-	if err := r([]byte("hello123")); err == nil {
+	err := r([]byte("hello123"))
+	if err == nil {
 		t.Errorf("Error expected for bytes matching pattern")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -280,8 +308,11 @@ func TestUniqueValid(t *testing.T) {
 func TestUniqueError(t *testing.T) {
 	s := []int{1, 2, 2, 3}
 	r := rule.Unique(&s)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice with duplicate elements")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -312,8 +343,11 @@ func TestUniqueStrings(t *testing.T) {
 func TestUniqueStringsError(t *testing.T) {
 	s := []string{"a", "b", "a"}
 	r := rule.Unique(&s)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for slice with duplicate strings")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -339,16 +373,22 @@ func TestContainsValid(t *testing.T) {
 func TestContainsError(t *testing.T) {
 	s := []int{1, 2, 3}
 	r := rule.ContainsElem(&s, 5)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestContainsEmptySlice(t *testing.T) {
 	s := []int{}
 	r := rule.ContainsElem(&s, 1)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for empty slice, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -374,8 +414,11 @@ func TestEqualSliceValid(t *testing.T) {
 func TestEqualSliceError(t *testing.T) {
 	s := []int{1, 2, 3}
 	r := rule.EqualSlice([]int{1, 2, 4})
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -390,8 +433,11 @@ func TestEqualSliceEmpty(t *testing.T) {
 func TestEqualSliceDifferentLength(t *testing.T) {
 	s := []int{1, 2}
 	r := rule.EqualSlice([]int{1, 2, 3})
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for different lengths, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -417,8 +463,11 @@ func TestEqualSliceFuncValid(t *testing.T) {
 func TestEqualSliceFuncError(t *testing.T) {
 	s := []int{1, 2, 3}
 	r := rule.EqualSliceFunc(&s, []int{1, 2, 4}, func(a, b int) bool { return a == b })
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -433,8 +482,11 @@ func TestEqualSliceFuncDifferentTypes(t *testing.T) {
 func TestEqualSliceFuncDifferentTypesError(t *testing.T) {
 	s := []int{1, 2, 3}
 	r := rule.EqualSliceFunc(&s, []float64{1.0, 2.0, 3.5}, func(a int, b float64) bool { return float64(a) == b })
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -451,8 +503,11 @@ func TestIsSortedValid(t *testing.T) {
 func TestIsSortedError(t *testing.T) {
 	s := []int{3, 1, 2}
 	r := rule.IsSorted(&s)
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for unsorted slice, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -485,8 +540,11 @@ func TestIsSortedFuncValid(t *testing.T) {
 func TestIsSortedFuncError(t *testing.T) {
 	s := []int{1, 3, 2}
 	r := rule.IsSortedFunc(&s, func(a, b int) int { return b - a })
-	if err := r(s); err == nil {
+	err := r(s)
+	if err == nil {
 		t.Errorf("Error expected for unsorted slice, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -512,8 +570,11 @@ func TestMatchBytesValid(t *testing.T) {
 func TestMatchBytesError(t *testing.T) {
 	re := regexp.MustCompile(`^\d+$`)
 	r := rule.MatchBytes[[]byte](re)
-	if err := r([]byte("abc")); err == nil {
+	err := r([]byte("abc"))
+	if err == nil {
 		t.Errorf("Error expected for non-digit bytes")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -530,7 +591,35 @@ func TestMatchCustomBytesTypeError(t *testing.T) {
 	type Payload []byte
 	re := regexp.MustCompile(`^hello`)
 	r := rule.MatchBytes[Payload](re)
-	if err := r(Payload("goodbye")); err == nil {
+	err := r(Payload("goodbye"))
+	if err == nil {
 		t.Errorf("Error expected for non-matching payload")
+	} else {
+		t.Logf("got error: %v", err)
+	}
+}
+
+func TestForEachIsValid(t *testing.T) {
+	s := []product{
+		{Name: "Widget", Price: 9.99},
+		{Name: "Gadget", Price: 4.99},
+	}
+	r := rule.ForEach(&s, rule.IsValid[product]())
+	if err := r(s); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestForEachIsValidOneInvalid(t *testing.T) {
+	s := []product{
+		{Name: "Widget", Price: 9.99},
+		{Name: "Gadget", Price: -1.0},
+	}
+	r := rule.ForEach(&s, rule.IsValid[product]())
+	err := r(s)
+	if err == nil {
+		t.Errorf("Error expected for invalid product, got nil")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

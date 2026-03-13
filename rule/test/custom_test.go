@@ -48,15 +48,21 @@ func TestCustomRuleValid(t *testing.T) {
 
 func TestCustomRuleEmptyName(t *testing.T) {
 	r := validPerson()
-	if err := r(Person{Name: "", Age: 25}); err == nil {
+	err := r(Person{Name: "", Age: 25})
+	if err == nil {
 		t.Errorf("Error expected for empty name")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
 func TestCustomRuleNegativeAge(t *testing.T) {
 	r := validPerson()
-	if err := r(Person{Name: "Bob", Age: -1}); err == nil {
+	err := r(Person{Name: "Bob", Age: -1})
+	if err == nil {
 		t.Errorf("Error expected for negative age")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -71,8 +77,11 @@ func TestCustomPtrRuleValid(t *testing.T) {
 func TestCustomPtrRuleError(t *testing.T) {
 	r := adultPersonPtr()
 	p := Person{Name: "Alice", Age: 15}
-	if err := r(&p); err == nil {
+	err := r(&p)
+	if err == nil {
 		t.Errorf("Error expected for age below 18")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -90,8 +99,11 @@ func TestRefConvertsValueRuleToPointerRule(t *testing.T) {
 func TestRefPointerRuleFailsOnBadValue(t *testing.T) {
 	r := rule.Ref(validPerson())
 	p := Person{Name: "", Age: 25}
-	if err := r(&p); err == nil {
+	err := r(&p)
+	if err == nil {
 		t.Errorf("Error expected when underlying value fails the rule")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -131,8 +143,11 @@ func TestRefMultipleValueRulesError(t *testing.T) {
 	}
 	r := rule.Ref(types.Rule[Person](nameRule), types.Rule[Person](ageRule))
 	p := Person{Name: "Bob", Age: -5}
-	if err := r(&p); err == nil {
+	err := r(&p)
+	if err == nil {
 		t.Errorf("Error expected when value fails one of the lifted rules")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -148,8 +163,11 @@ func TestDerefConvertsPointerRuleToValueRule(t *testing.T) {
 
 func TestDerefValueRuleFailsOnBadValue(t *testing.T) {
 	r := rule.Deref(adultPersonPtr())
-	if err := r(Person{Name: "Alice", Age: 16}); err == nil {
+	err := r(Person{Name: "Alice", Age: 16})
+	if err == nil {
 		t.Errorf("Error expected when value fails the deref'd rule")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -174,8 +192,11 @@ func TestDerefMultiplePointerRulesError(t *testing.T) {
 		return nil
 	}
 	r := rule.Deref(types.Rule[*Person](nameRule), adultPersonPtr())
-	if err := r(Person{Name: "Alice", Age: 15}); err == nil {
+	err := r(Person{Name: "Alice", Age: 15})
+	if err == nil {
 		t.Errorf("Error expected when value fails one of the deref'd rules")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -198,8 +219,11 @@ func TestRefThenDerefRoundtripError(t *testing.T) {
 	roundtrip := rule.Deref(rule.Ref(original))
 
 	invalid := Person{Name: "", Age: 25}
-	if err := roundtrip(invalid); err == nil {
+	err := roundtrip(invalid)
+	if err == nil {
 		t.Errorf("Error expected after roundtrip for invalid value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -219,7 +243,10 @@ func TestDerefThenRefRoundtripError(t *testing.T) {
 	roundtrip := rule.Ref(rule.Deref(original))
 
 	p := Person{Name: "Alice", Age: 15}
-	if err := roundtrip(&p); err == nil {
+	err := roundtrip(&p)
+	if err == nil {
 		t.Errorf("Error expected after roundtrip for invalid value")
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }

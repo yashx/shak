@@ -15,6 +15,11 @@ func Validate[T any](value T, rules ...types.Rule[T]) *types.ValidationError {
 	return v.Validate()
 }
 
+func SatisfiesValidation(v validation.Validation) bool {
+	err := v.Validate()
+	return err == nil
+}
+
 func RunValidation(v validation.Validation) *types.ValidationError {
 	return v.Validate()
 }

@@ -19,6 +19,8 @@ func TestIsTrueError(t *testing.T) {
 	err := r(false)
 	if err == nil {
 		t.Errorf("Errors are expected, got: %v", err)
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
@@ -35,6 +37,8 @@ func TestIsFalseError(t *testing.T) {
 	err := r(true)
 	if err == nil {
 		t.Errorf("Errors are expected, got: %v", err)
+	} else {
+		t.Logf("got error: %v", err)
 	}
 }
 
