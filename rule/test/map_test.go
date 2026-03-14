@@ -61,6 +61,64 @@ func TestForEachValueCustomType(t *testing.T) {
 	}
 }
 
+// ForEachKey
+
+func TestForEachKeyValid(t *testing.T) {
+	m := map[string]int{"foo": 1, "bar": 2}
+	r := rule.ForEachKey(&m, rule.MinLengthString[string](1))
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestForEachKeyError(t *testing.T) {
+	m := map[string]int{"": 1, "bar": 2}
+	r := rule.ForEachKey(&m, rule.MinLengthString[string](1))
+	err := r(m)
+	if err == nil {
+		t.Errorf("Error expected for empty key, got nil")
+	} else {
+		t.Logf("got error: %v", err)
+	}
+}
+
+func TestForEachKeyEmptyMap(t *testing.T) {
+	m := map[string]int{}
+	r := rule.ForEachKey(&m, rule.MinLengthString[string](1))
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected for empty map, got: %v", err)
+	}
+}
+
+func TestForEachKeyErrorContainsKey(t *testing.T) {
+	m := map[string]int{"bad key": 1}
+	r := rule.ForEachKey(&m, rule.NotContainsAnyChar[string](" "))
+	err := r(m)
+	if err == nil {
+		t.Errorf("Error expected, got nil")
+	}
+	if err.Path != "[bad key]" {
+		t.Errorf("Expected path [bad key], got: %v", err.Path)
+	}
+}
+
+func TestForEachKeyAllIntKeysPositive(t *testing.T) {
+	m := map[int]string{1: "a", 2: "b", 3: "c"}
+	r := rule.ForEachKey(&m, rule.Positive[int]())
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestForEachKeyCustomType(t *testing.T) {
+	type MyMap map[string]int
+	m := MyMap{"alpha": 1}
+	r := rule.ForEachKey(&m, rule.NotBlank[string]())
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
 // ForKey
 
 func TestForKeyValid(t *testing.T) {

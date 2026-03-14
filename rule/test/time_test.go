@@ -128,6 +128,32 @@ func TestInThePastError(t *testing.T) {
 	}
 }
 
+// InThePastOrPresent
+
+func TestInThePastOrPresentValid(t *testing.T) {
+	r := rule.InThePastOrPresent()
+	if err := r(past); err != nil {
+		t.Errorf("No errors expected for past time, got: %v", err)
+	}
+}
+
+func TestInThePastOrPresentNowValid(t *testing.T) {
+	r := rule.InThePastOrPresent()
+	if err := r(time.Now()); err != nil {
+		t.Errorf("No errors expected for current time, got: %v", err)
+	}
+}
+
+func TestInThePastOrPresentError(t *testing.T) {
+	r := rule.InThePastOrPresent()
+	err := r(future)
+	if err == nil {
+		t.Errorf("Error expected for future time")
+	} else {
+		t.Logf("got error: %v", err)
+	}
+}
+
 // InTheFuture
 
 func TestInTheFutureValid(t *testing.T) {
@@ -139,6 +165,26 @@ func TestInTheFutureValid(t *testing.T) {
 
 func TestInTheFutureError(t *testing.T) {
 	r := rule.InTheFuture()
+	err := r(past)
+	if err == nil {
+		t.Errorf("Error expected for past time")
+	} else {
+		t.Logf("got error: %v", err)
+	}
+}
+
+// InTheFutureOrPresent
+
+func TestInTheFutureOrPresentValid(t *testing.T) {
+	r := rule.InTheFutureOrPresent()
+	if err := r(future); err != nil {
+		t.Errorf("No errors expected for future time, got: %v", err)
+	}
+}
+
+
+func TestInTheFutureOrPresentError(t *testing.T) {
+	r := rule.InTheFutureOrPresent()
 	err := r(past)
 	if err == nil {
 		t.Errorf("Error expected for past time")

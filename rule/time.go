@@ -46,6 +46,16 @@ func InThePast() types.Rule[time.Time] {
 	}
 }
 
+// InThePastOrPresent validates that the time is before or equal to the current time.
+func InThePastOrPresent() types.Rule[time.Time] {
+	return func(value time.Time) *types.ValidationError {
+		if !value.After(time.Now()) {
+			return nil
+		}
+		return types.NewValidationError("time %v must be in the past or present", value)
+	}
+}
+
 // InTheFuture validates that the time is after the current time.
 func InTheFuture() types.Rule[time.Time] {
 	return func(value time.Time) *types.ValidationError {
@@ -53,6 +63,16 @@ func InTheFuture() types.Rule[time.Time] {
 			return nil
 		}
 		return types.NewValidationError("time %v must be in the future", value)
+	}
+}
+
+// InTheFutureOrPresent validates that the time is after or equal to the current time.
+func InTheFutureOrPresent() types.Rule[time.Time] {
+	return func(value time.Time) *types.ValidationError {
+		if !value.Before(time.Now()) {
+			return nil
+		}
+		return types.NewValidationError("time %v must be in the future or present", value)
 	}
 }
 

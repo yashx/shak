@@ -20,6 +20,19 @@ func ForEachValue[M ~map[K]T, K comparable, T any](m *M, rule types.Rule[T]) typ
 	}
 }
 
+// ForEachKey validates each map key against the provided rule.
+func ForEachKey[M ~map[K]T, K comparable, T any](m *M, rule types.Rule[K]) types.Rule[M] {
+	// m is only passed to help compiler with type inference
+	return func(value M) *types.ValidationError {
+		for k := range value {
+			if err := rule(k); err != nil {
+				return types.NewValidationErrorWithPath(fmt.Sprintf("[%v]", k), err.Message)
+			}
+		}
+		return nil
+	}
+}
+
 // ForKey validates the value at a specific map key against the provided rule.
 // Returns an error if the key is not present in the map.
 func ForKey[M ~map[K]T, K comparable, T any](m *M, key K, rule types.Rule[T]) types.Rule[M] {
