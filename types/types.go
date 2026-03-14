@@ -11,7 +11,10 @@ type ValidationError struct {
 }
 
 func (er ValidationError) Error() string {
-	return er.Message
+	if er.Path == "" || er.Path == "." {
+		return er.Message
+	}
+	return er.Path + ": " + er.Message
 }
 
 func NewValidationError(messageFormat string, a ...any) *ValidationError {
@@ -30,7 +33,9 @@ func NewValidationErrorWithPath(path, message string) *ValidationError {
 
 func NewValidationErrorWithParentName(parentName string, childErr *ValidationError) *ValidationError {
 	var p string
-	if strings.HasPrefix(childErr.Path, "[") {
+	if parentName == "" || parentName == "." {
+		p = childErr.Path
+	} else if strings.HasPrefix(childErr.Path, "[") {
 		p = fmt.Sprintf("%s%s", parentName, childErr.Path)
 	} else {
 		p = fmt.Sprintf("%s.%s", parentName, childErr.Path)
@@ -50,7 +55,7 @@ func (r Rule[T]) WithMessage(format string, a ...any) Rule[T] {
 		if err == nil {
 			return nil
 		}
-		return NewValidationError(format, a...)
+		return &ValidationError{Path: err.Path, Message: fmt.Sprintf(format, a...)}
 	}
 }
 

@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/yashx/shak/rule"
+	"github.com/yashx/shak/validation"
 )
 
 // ForEach
 
 func TestForEachIntValid(t *testing.T) {
 	s := []int{2, 5, 10}
-	r := rule.ForEach(&s,rule.Min[int](1))
+	r := rule.ForEach(&s, rule.Min[int](1))
 	if err := r(s); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
@@ -19,7 +20,7 @@ func TestForEachIntValid(t *testing.T) {
 
 func TestForEachIntError(t *testing.T) {
 	s := []int{5, -1, 10}
-	r := rule.ForEach(&s,rule.Positive[int]())
+	r := rule.ForEach(&s, rule.Positive[int]())
 	err := r(s)
 	if err == nil {
 		t.Errorf("Error expected for slice containing negative value")
@@ -30,7 +31,7 @@ func TestForEachIntError(t *testing.T) {
 
 func TestForEachErrorContainsIndex(t *testing.T) {
 	s := []int{5, -1, 10}
-	r := rule.ForEach(&s,rule.Positive[int]())
+	r := rule.ForEach(&s, rule.Positive[int]())
 	err := r(s)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
@@ -44,7 +45,7 @@ func TestForEachErrorContainsIndex(t *testing.T) {
 
 func TestForEachEmptySlice(t *testing.T) {
 	s := []int{}
-	r := rule.ForEach(&s,rule.Positive[int]())
+	r := rule.ForEach(&s, rule.Positive[int]())
 	if err := r(s); err != nil {
 		t.Errorf("No errors expected for empty slice, got: %v", err)
 	}
@@ -52,7 +53,7 @@ func TestForEachEmptySlice(t *testing.T) {
 
 func TestForEachStringValid(t *testing.T) {
 	s := []string{"hello", "world"}
-	r := rule.ForEach(&s,rule.IsNotZeroValue[string]())
+	r := rule.ForEach(&s, rule.IsNotZeroValue[string]())
 	if err := r(s); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
@@ -60,7 +61,7 @@ func TestForEachStringValid(t *testing.T) {
 
 func TestForEachStringError(t *testing.T) {
 	s := []string{"hello", "", "world"}
-	r := rule.ForEach(&s,rule.IsNotZeroValue[string]())
+	r := rule.ForEach(&s, rule.IsNotZeroValue[string]())
 	err := r(s)
 	if err == nil {
 		t.Errorf("Error expected for slice containing empty string")
@@ -72,7 +73,7 @@ func TestForEachStringError(t *testing.T) {
 func TestForEachCustomType(t *testing.T) {
 	type Score int
 	s := []Score{10, 20, 30}
-	r := rule.ForEach(&s,rule.Positive[Score]())
+	r := rule.ForEach(&s, rule.Positive[Score]())
 	if err := r(s); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
@@ -80,7 +81,7 @@ func TestForEachCustomType(t *testing.T) {
 
 func TestForEachStopsAtFirstError(t *testing.T) {
 	s := []int{-1, -2, -3}
-	r := rule.ForEach(&s,rule.Positive[int]())
+	r := rule.ForEach(&s, rule.Positive[int]())
 	err := r(s)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
@@ -621,5 +622,75 @@ func TestForEachIsValidOneInvalid(t *testing.T) {
 		t.Errorf("Error expected for invalid product, got nil")
 	} else {
 		t.Logf("got error: %v", err)
+	}
+}
+
+func TestForEachIsValidNestedPath(t *testing.T) {
+	s := []product{
+		{Name: "Widget", Price: 9.99},
+		{Name: "Gadget", Price: -1.0}, // index 1, price fails
+	}
+	r := rule.ForEach(&s, rule.IsValid[product]())
+	err := r(s)
+	if err == nil {
+		t.Fatalf("Error expected, got nil")
+	}
+	if err.Path != "[1].price" {
+		t.Errorf("Expected path [1].price, got: %v", err.Path)
+	}
+}
+
+func TestForEachIsValidNestedPathFirstElement(t *testing.T) {
+	s := []product{
+		{Name: "", Price: 9.99}, // index 0, name fails
+		{Name: "Gadget", Price: 4.99},
+	}
+	r := rule.ForEach(&s, rule.IsValid[product]())
+	err := r(s)
+	if err == nil {
+		t.Fatalf("Error expected, got nil")
+	}
+	if err.Path != "[0].name" {
+		t.Errorf("Expected path [0].name, got: %v", err.Path)
+	}
+}
+
+// 4-level deep path test
+//
+// Structure: []taggedItem → [i] → .tags → [j] → .name
+// Expected path for a failing tag name: [i].tags[j].name
+
+type tagItem struct {
+	Name string
+}
+
+func (t tagItem) Validation() validation.Validation {
+	return validation.NewValidations(
+		validation.Value("name", t.Name, rule.NotBlank[string]()),
+	)
+}
+
+type taggedItem struct {
+	Tags []tagItem
+}
+
+func (i taggedItem) Validation() validation.Validation {
+	return validation.NewValidations(
+		validation.Value("tags", i.Tags, rule.ForEach(&i.Tags, rule.IsValid[tagItem]())),
+	)
+}
+
+func TestForEachFourLevelsDeepPath(t *testing.T) {
+	items := []taggedItem{
+		{Tags: []tagItem{{Name: "go"}, {Name: "generics"}}},
+		{Tags: []tagItem{{Name: "valid"}, {Name: ""}}}, // items[1].tags[1].name is blank
+	}
+	r := rule.ForEach(&items, rule.IsValid[taggedItem]())
+	err := r(items)
+	if err == nil {
+		t.Fatalf("Error expected, got nil")
+	}
+	if err.Path != "[1].tags[1].name" {
+		t.Errorf("Expected path [1].tags[1].name, got: %v", err.Path)
 	}
 }

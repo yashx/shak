@@ -11,7 +11,7 @@ func Satisfies[T any](value T, rules ...types.Rule[T]) bool {
 }
 
 func Validate[T any](value T, rules ...types.Rule[T]) *types.ValidationError {
-	v := validation.Value(".", value, rules...)
+	v := validation.Value("", value, rules...)
 	return v.Validate()
 }
 
@@ -25,7 +25,7 @@ func RunValidation(v validation.Validation) *types.ValidationError {
 }
 
 func ValidateAll[T any](value T, rules ...types.Rule[T]) []*types.ValidationError {
-	v := validation.Value(".", value, rules...)
+	v := validation.Value("", value, rules...)
 	return v.ValidateAll()
 }
 

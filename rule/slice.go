@@ -15,7 +15,7 @@ func ForEach[S ~[]T, T any](s *S, rule types.Rule[T]) types.Rule[S] {
 	return func(value S) *types.ValidationError {
 		for i, v := range value {
 			if err := rule(v); err != nil {
-				return types.NewValidationErrorWithPath(fmt.Sprintf("[%v]", i), err.Message)
+				return types.NewValidationErrorWithParentName(fmt.Sprintf("[%v]", i), err)
 			}
 		}
 		return nil

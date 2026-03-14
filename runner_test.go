@@ -89,7 +89,6 @@ type sample struct {
 
 func (s sample) Validation() validation.Validation {
 	return validation.NewValidations(
-		"sample",
 		validation.Value("X", s.X, rule.Max(10)),
 		validation.Value("Y", s.Y, rule.Min(10)),
 	)
@@ -187,7 +186,7 @@ type address struct {
 }
 
 func (a address) Validation() validation.Validation {
-	return validation.NewValidations("address",
+	return validation.NewValidations(
 		validation.Value("street", a.Street, rule.NotBlank[string]()),
 		validation.Value("city", a.City, rule.NotBlank[string]()),
 	)
@@ -200,7 +199,7 @@ type person struct {
 }
 
 func (p person) Validation() validation.Validation {
-	return validation.NewValidations("person",
+	return validation.NewValidations(
 		validation.Value("name", p.Name, rule.NotBlank[string]()),
 		validation.Value("age", p.Age, rule.Positive[int](), rule.Range(0, 120)),
 		validation.Nested("address", p.Address),
@@ -282,7 +281,7 @@ type delivery struct {
 }
 
 func (d delivery) Validation() validation.Validation {
-	return validation.NewValidations("delivery",
+	return validation.NewValidations(
 		validation.Value("from", d.From, rule.NotBlank[string]()),
 		// notServicedCity is a custom outer rule; address.Validation() also runs
 		validation.Nested("destination", d.Destination, notServicedCity),
@@ -333,7 +332,7 @@ type shipment struct {
 }
 
 func (s shipment) Validation() validation.Validation {
-	return validation.NewValidations("shipment",
+	return validation.NewValidations(
 		validation.Value("trackingID", s.TrackingID, rule.NotBlank[string]()),
 		// Value with a custom rule — only cityNotBlank runs, not address.Validation()
 		// so a blank street is never checked

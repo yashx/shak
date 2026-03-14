@@ -20,9 +20,7 @@ type Validatable interface {
 // ValidateAll.
 //
 // Validate stops at the first error; ValidateAll collects every error.
-// Name returns the field or struct label used to build error paths.
 type Validation interface {
-	Name() string
 	Validate() *types.ValidationError
 	ValidateAll() []*types.ValidationError
 }
@@ -41,17 +39,13 @@ func Value[T any](name string, value T, rules ...types.Rule[T]) Validation {
 	}
 }
 
-func (v *valueValidation[T]) Name() string {
-	return v.name
-}
-
 func (v *valueValidation[T]) Validate() *types.ValidationError {
 	for _, r := range v.rules {
 		if r == nil {
 			continue
 		}
 		if err := r(v.value); err != nil {
-			return types.NewValidationErrorWithParentName(v.Name(), err)
+			return types.NewValidationErrorWithParentName(v.name, err)
 		}
 	}
 	return nil
@@ -64,27 +58,21 @@ func (v *valueValidation[T]) ValidateAll() []*types.ValidationError {
 			continue
 		}
 		if err := r(v.value); err != nil {
-			errors = append(errors, types.NewValidationErrorWithParentName(v.Name(), err))
+			errors = append(errors, types.NewValidationErrorWithParentName(v.name, err))
 		}
 	}
 	return errors
 }
 
 type validationsHolder struct {
-	name        string
 	validations []Validation
 }
 
 // NewValidations groups multiple Validation entries under a named parent.
-func NewValidations(name string, validations ...Validation) Validation {
+func NewValidations(validations ...Validation) Validation {
 	return &validationsHolder{
-		name:        name,
 		validations: validations,
 	}
-}
-
-func (s *validationsHolder) Name() string {
-	return s.name
 }
 
 func (s *validationsHolder) Validate() *types.ValidationError {
@@ -93,7 +81,7 @@ func (s *validationsHolder) Validate() *types.ValidationError {
 			continue
 		}
 		if err := v.Validate(); err != nil {
-			return types.NewValidationErrorWithParentName(s.Name(), err)
+			return err
 		}
 	}
 	return nil
@@ -105,11 +93,8 @@ func (s *validationsHolder) ValidateAll() []*types.ValidationError {
 		if v == nil {
 			continue
 		}
-		if err := v.ValidateAll(); err != nil {
-			for _, e := range err {
-				errors = append(errors, types.NewValidationErrorWithParentName(s.Name(), e))
-			}
-		}
+		ers := v.ValidateAll()
+		errors = append(errors, ers...)
 	}
 	return errors
 }
@@ -128,20 +113,20 @@ func Nested[T Validatable](name string, value T, rules ...types.Rule[T]) Validat
 	}
 }
 
-func (v *nestedValidation[T]) Name() string {
-	return v.name
-}
-
 func (v *nestedValidation[T]) Validate() *types.ValidationError {
 	for _, r := range v.rules {
 		if r == nil {
 			continue
 		}
 		if err := r(v.value); err != nil {
-			return types.NewValidationErrorWithParentName(v.Name(), err)
+			return types.NewValidationErrorWithParentName(v.name, err)
 		}
 	}
-	return v.value.Validation().Validate()
+	err := v.value.Validation().Validate()
+	if err != nil {
+		return types.NewValidationErrorWithParentName(v.name, err)
+	}
+	return nil
 }
 
 func (v *nestedValidation[T]) ValidateAll() []*types.ValidationError {
@@ -151,10 +136,14 @@ func (v *nestedValidation[T]) ValidateAll() []*types.ValidationError {
 			continue
 		}
 		if err := r(v.value); err != nil {
-			errors = append(errors, types.NewValidationErrorWithParentName(v.Name(), err))
+			errors = append(errors, types.NewValidationErrorWithParentName(v.name, err))
 		}
 	}
 
-	errors = append(errors, v.value.Validation().ValidateAll()...)
+	ers := v.value.Validation().ValidateAll()
+	for _, e := range ers {
+		errors = append(errors, types.NewValidationErrorWithParentName(v.name, e))
+	}
+
 	return errors
 }

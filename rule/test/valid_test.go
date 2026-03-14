@@ -26,7 +26,7 @@ type product struct {
 }
 
 func (p product) Validation() validation.Validation {
-	return validation.NewValidations("product",
+	return validation.NewValidations(
 		validation.Value("name", p.Name, rule.IsNotZeroValue[string]()),
 		validation.Value("price", p.Price, rule.Positive[float64]()),
 	)

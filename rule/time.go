@@ -83,6 +83,6 @@ func OnDate(t time.Time) types.Rule[time.Time] {
 		if v.Year() == t.Year() && v.Month() == t.Month() && v.Day() == t.Day() {
 			return nil
 		}
-		return types.NewValidationError("time %v is not on date %v", value.In(t.Location()).Format("2006-01-02"), t.Format("2006-01-02"))
+		return types.NewValidationError("time %v is not on date %v", v.Format("2006-01-02"), t.Format("2006-01-02"))
 	}
 }

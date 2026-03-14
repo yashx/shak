@@ -123,7 +123,7 @@ func TestForEachKeyCustomType(t *testing.T) {
 
 func TestForKeyValid(t *testing.T) {
 	m := map[string]int{"age": 21}
-	r := rule.ForKey(&m,"age", rule.Min[int](18))
+	r := rule.ForKey(&m, "age", rule.Min[int](18))
 	err := r(m)
 	if err != nil {
 		t.Errorf("No errors expected, got: %v", err)
@@ -132,7 +132,7 @@ func TestForKeyValid(t *testing.T) {
 
 func TestForKeyError(t *testing.T) {
 	m := map[string]int{"age": 10}
-	r := rule.ForKey(&m,"age", rule.Min[int](18))
+	r := rule.ForKey(&m, "age", rule.Min[int](18))
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
@@ -143,7 +143,7 @@ func TestForKeyError(t *testing.T) {
 
 func TestForKeyErrorContainsKey(t *testing.T) {
 	m := map[string]int{"age": 10}
-	r := rule.ForKey(&m,"age", rule.Min[int](18))
+	r := rule.ForKey(&m, "age", rule.Min[int](18))
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
@@ -157,7 +157,7 @@ func TestForKeyErrorContainsKey(t *testing.T) {
 
 func TestForKeyMissingKey(t *testing.T) {
 	m := map[string]int{}
-	r := rule.ForKey(&m,"missing", rule.Min[int](1))
+	r := rule.ForKey(&m, "missing", rule.Min[int](1))
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected for missing key, got nil")
@@ -168,7 +168,7 @@ func TestForKeyMissingKey(t *testing.T) {
 
 func TestForKeyMissingKeyErrorPath(t *testing.T) {
 	m := map[string]int{}
-	r := rule.ForKey(&m,"score", rule.Min[int](1))
+	r := rule.ForKey(&m, "score", rule.Min[int](1))
 	err := r(m)
 	if err == nil {
 		t.Fatalf("Error expected for missing key, got nil")
@@ -183,7 +183,7 @@ func TestForKeyMissingKeyErrorPath(t *testing.T) {
 func TestForKeyZeroValueExplicitlySet(t *testing.T) {
 	// key exists with zero value — should pass through to the rule, not be treated as missing
 	m := map[string]int{"count": 0}
-	r := rule.ForKey(&m,"count", rule.Min[int](0))
+	r := rule.ForKey(&m, "count", rule.Min[int](0))
 	if err := r(m); err != nil {
 		t.Errorf("No errors expected for explicitly set zero value, got: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestForKeyZeroValueExplicitlySet(t *testing.T) {
 func TestForKeyZeroValueExplicitlySetFails(t *testing.T) {
 	// key exists with zero value but fails the rule — should return rule error, not missing-key error
 	m := map[string]int{"count": 0}
-	r := rule.ForKey(&m,"count", rule.Positive[int]())
+	r := rule.ForKey(&m, "count", rule.Positive[int]())
 	err := r(m)
 	if err == nil {
 		t.Errorf("Error expected when explicitly set zero value fails rule")
@@ -203,7 +203,7 @@ func TestForKeyZeroValueExplicitlySetFails(t *testing.T) {
 
 func TestForKeyIntKey(t *testing.T) {
 	m := map[int]string{1: "hello"}
-	r := rule.ForKey(&m,1, rule.LengthString[string](5))
+	r := rule.ForKey(&m, 1, rule.LengthString[string](5))
 	err := r(m)
 	if err != nil {
 		t.Errorf("No errors expected, got: %v", err)
@@ -213,7 +213,7 @@ func TestForKeyIntKey(t *testing.T) {
 func TestForKeyCustomType(t *testing.T) {
 	type MyMap map[string]int
 	m := MyMap{"score": 100}
-	r := rule.ForKey(&m,"score", rule.Min[int](0))
+	r := rule.ForKey(&m, "score", rule.Min[int](0))
 	err := r(m)
 	if err != nil {
 		t.Errorf("No errors expected, got: %v", err)
@@ -261,6 +261,92 @@ func TestLengthMapCustomType(t *testing.T) {
 	}
 }
 
+// MinLengthMap
+
+func TestMinLengthMapValid(t *testing.T) {
+	m := map[string]int{"a": 1, "b": 2, "c": 3}
+	r := rule.MinLengthMap(&m, 2)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestMinLengthMapAtBound(t *testing.T) {
+	m := map[string]int{"a": 1, "b": 2}
+	r := rule.MinLengthMap(&m, 2)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected at exact min length, got: %v", err)
+	}
+}
+
+func TestMinLengthMapError(t *testing.T) {
+	m := map[string]int{"a": 1}
+	r := rule.MinLengthMap(&m, 3)
+	if err := r(m); err == nil {
+		t.Errorf("Error expected for map below min length")
+	}
+}
+
+func TestMinLengthMapEmpty(t *testing.T) {
+	m := map[string]int{}
+	r := rule.MinLengthMap(&m, 1)
+	if err := r(m); err == nil {
+		t.Errorf("Error expected for empty map with min 1")
+	}
+}
+
+func TestMinLengthMapCustomType(t *testing.T) {
+	type MyMap map[string]bool
+	m := MyMap{"a": true, "b": false}
+	r := rule.MinLengthMap(&m, 1)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+// MaxLengthMap
+
+func TestMaxLengthMapValid(t *testing.T) {
+	m := map[string]int{"a": 1}
+	r := rule.MaxLengthMap(&m, 5)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
+func TestMaxLengthMapAtBound(t *testing.T) {
+	m := map[string]int{"a": 1, "b": 2}
+	r := rule.MaxLengthMap(&m, 2)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected at exact max length, got: %v", err)
+	}
+}
+
+func TestMaxLengthMapError(t *testing.T) {
+	m := map[string]int{"a": 1, "b": 2, "c": 3, "d": 4}
+	r := rule.MaxLengthMap(&m, 3)
+	if err := r(m); err == nil {
+		t.Errorf("Error expected for map above max length")
+	}
+}
+
+func TestMaxLengthMapEmpty(t *testing.T) {
+	m := map[string]int{}
+	r := rule.MaxLengthMap(&m, 5)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected for empty map, got: %v", err)
+	}
+}
+
+func TestMaxLengthMapCustomType(t *testing.T) {
+	type MyMap map[string]bool
+	m := MyMap{"only": true}
+	r := rule.MaxLengthMap(&m, 3)
+	if err := r(m); err != nil {
+		t.Errorf("No errors expected, got: %v", err)
+	}
+}
+
 func TestForEachValueIsValid(t *testing.T) {
 	m := map[string]product{
 		"a": {Name: "Widget", Price: 9.99},
@@ -283,6 +369,35 @@ func TestForEachValueIsValidOneInvalid(t *testing.T) {
 		t.Errorf("Error expected for invalid product, got nil")
 	} else {
 		t.Logf("got error: %v", err)
+	}
+}
+
+func TestForEachValueIsValidNestedPath(t *testing.T) {
+	// Only one invalid entry to avoid non-determinism from map iteration order.
+	m := map[string]product{
+		"featured": {Name: "", Price: 9.99}, // name fails
+	}
+	r := rule.ForEachValue(&m, rule.IsValid[product]())
+	err := r(m)
+	if err == nil {
+		t.Fatalf("Error expected, got nil")
+	}
+	if err.Path != "[featured].name" {
+		t.Errorf("Expected path [featured].name, got: %v", err.Path)
+	}
+}
+
+func TestForKeyIsValidNestedPath(t *testing.T) {
+	m := map[string]product{
+		"featured": {Name: "", Price: 9.99}, // name fails
+	}
+	r := rule.ForKey(&m, "featured", rule.IsValid[product]())
+	err := r(m)
+	if err == nil {
+		t.Fatalf("Error expected, got nil")
+	}
+	if err.Path != "[featured].name" {
+		t.Errorf("Expected path [featured].name, got: %v", err.Path)
 	}
 }
 

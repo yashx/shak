@@ -13,7 +13,7 @@ func ForEachValue[M ~map[K]T, K comparable, T any](m *M, rule types.Rule[T]) typ
 	return func(value M) *types.ValidationError {
 		for k, v := range value {
 			if err := rule(v); err != nil {
-				return types.NewValidationErrorWithPath(fmt.Sprintf("[%v]", k), err.Message)
+				return types.NewValidationErrorWithParentName(fmt.Sprintf("[%v]", k), err)
 			}
 		}
 		return nil
@@ -26,7 +26,7 @@ func ForEachKey[M ~map[K]T, K comparable, T any](m *M, rule types.Rule[K]) types
 	return func(value M) *types.ValidationError {
 		for k := range value {
 			if err := rule(k); err != nil {
-				return types.NewValidationErrorWithPath(fmt.Sprintf("[%v]", k), err.Message)
+				return types.NewValidationErrorWithParentName(fmt.Sprintf("[%v]", k), err)
 			}
 		}
 		return nil
@@ -43,7 +43,7 @@ func ForKey[M ~map[K]T, K comparable, T any](m *M, key K, rule types.Rule[T]) ty
 			return types.NewValidationErrorWithPath(fmt.Sprintf("[%v]", key), "value is missing")
 		}
 		if err := rule(value); err != nil {
-			return types.NewValidationErrorWithPath(fmt.Sprintf("[%v]", key), err.Message)
+			return types.NewValidationErrorWithParentName(fmt.Sprintf("[%v]", key), err)
 		}
 		return nil
 	}
@@ -56,6 +56,26 @@ func LengthMap[M ~map[K]T, K comparable, T any](m *M, l int) types.Rule[M] {
 			return nil
 		}
 		return types.NewValidationError("length is %d, expected %d", len(value), l)
+	}
+}
+
+// MinLengthMap validates that the map has at least l entries.
+func MinLengthMap[M ~map[K]T, K comparable, T any](m *M, l int) types.Rule[M] {
+	return func(value M) *types.ValidationError {
+		if len(value) >= l {
+			return nil
+		}
+		return types.NewValidationError("length is %d, expected at least %d", len(value), l)
+	}
+}
+
+// MaxLengthMap validates that the map has at most l entries.
+func MaxLengthMap[M ~map[K]T, K comparable, T any](m *M, l int) types.Rule[M] {
+	return func(value M) *types.ValidationError {
+		if len(value) <= l {
+			return nil
+		}
+		return types.NewValidationError("length is %d, expected at most %d", len(value), l)
 	}
 }
 

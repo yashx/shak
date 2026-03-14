@@ -38,9 +38,12 @@ func And[T any](rules ...types.Rule[T]) types.Rule[T] {
 	}
 }
 
-// Ref lifts value rules into a pointer rule. Panics if the pointer passed at runtime is nil.
+// Ref lifts value rules into a pointer rule.
 func Ref[T any](rules ...types.Rule[T]) types.Rule[*T] {
 	return func(value *T) *types.ValidationError {
+		if value == nil {
+			return types.NewValidationError("value is nil")
+		}
 		for _, rule := range rules {
 			if rule == nil {
 				continue
