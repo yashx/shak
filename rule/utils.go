@@ -38,7 +38,7 @@ func And[T any](rules ...types.Rule[T]) types.Rule[T] {
 	}
 }
 
-// Ref lifts value rules into a pointer rule.
+// Ref lifts value rules into a pointer rule. Returns an error if the pointer is nil.
 func Ref[T any](rules ...types.Rule[T]) types.Rule[*T] {
 	return func(value *T) *types.ValidationError {
 		if value == nil {
@@ -72,7 +72,7 @@ func Deref[T any](rules ...types.Rule[*T]) types.Rule[T] {
 }
 
 // If returns the rule when condition is true, or nil when false.
-// Nil rules are safely skipped by And, Else, and the validation layer — do not call the result directly.
+// The nil result is safely skipped by And and the validation layer — do not call it directly.
 func If[T any](condition bool, conditionalRule types.Rule[T]) types.Rule[T] {
 	if !condition {
 		return nil

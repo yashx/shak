@@ -68,7 +68,7 @@ func NotBlank[T ~string]() types.Rule[T] {
 	}
 }
 
-// LengthString validates that the string has exactly l bytes. Use RuneLength for character count.
+// LengthString validates that the string has exactly l bytes. Use LengthRune for character count.
 func LengthString[T ~string](l int) types.Rule[T] {
 	return func(value T) *types.ValidationError {
 		if len(value) == l {

@@ -2,23 +2,13 @@ package validation
 
 import "github.com/yashx/shak/types"
 
-// Validatable is implemented by types that know how to describe their own
-// validation. The Validation method returns a Validation that captures the
-// current field values and their rules — call it once per validation cycle
-// to get a consistent snapshot.
-//
-// Implement this on your domain structs so they can be passed to
-// RunValidation / RunFullValidation or composed into parent validations via
-// NewValidations.
+// Validatable is implemented by types that describe their own validation rules.
+// Call Validation() once per validation cycle to get a consistent snapshot.
 type Validatable interface {
 	Validation() Validation
 }
 
-// Validation represents a named, executable validation — the result of
-// describing what to check and against which rules. It is produced by
-// Value or NewValidations and then executed by calling Validate or
-// ValidateAll.
-//
+// Validation is an executable validation produced by Value, NewValidations, or Nested.
 // Validate stops at the first error; ValidateAll collects every error.
 type Validation interface {
 	Validate() *types.ValidationError
@@ -31,6 +21,7 @@ type valueValidation[T any] struct {
 	rules []types.Rule[T]
 }
 
+// Value creates a Validation that runs rules against a single named value.
 func Value[T any](name string, value T, rules ...types.Rule[T]) Validation {
 	return &valueValidation[T]{
 		name:  name,
@@ -68,7 +59,7 @@ type validationsHolder struct {
 	validations []Validation
 }
 
-// NewValidations groups multiple Validation entries under a named parent.
+// NewValidations groups multiple Validation entries, running them in order.
 func NewValidations(validations ...Validation) Validation {
 	return &validationsHolder{
 		validations: validations,
@@ -105,6 +96,9 @@ type nestedValidation[T Validatable] struct {
 	rules []types.Rule[T]
 }
 
+// Nested creates a Validation for a named field whose type implements Validatable.
+// Outer rules run first; if they pass, the field's own Validation() runs next.
+// All error paths are prefixed with name.
 func Nested[T Validatable](name string, value T, rules ...types.Rule[T]) Validation {
 	return &nestedValidation[T]{
 		name:  name,
