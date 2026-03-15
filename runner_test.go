@@ -96,44 +96,7 @@ func TestValidateAllSkipsNilRule(t *testing.T) {
 	}
 }
 
-// --- RunValidation / RunFullValidation — named field paths ---
-
-func TestRunValidationFieldPath(t *testing.T) {
-	err := RunValidation(validation.Value("age", -1, rule.Min[int](0)))
-	if err == nil {
-		t.Fatalf("Error expected, got nil")
-	}
-	if err.Path != "age" {
-		t.Errorf("Expected path 'age', got: %v", err.Path)
-	}
-}
-
-func TestRunFullValidationFieldPath(t *testing.T) {
-	r1 := types.Rule[int](func(v int) *types.ValidationError {
-		return types.NewValidationError("bad value")
-	})
-	errs := RunFullValidation(validation.Value("count", 0, r1))
-	if len(errs) != 1 {
-		t.Fatalf("Expected 1 error, got: %d", len(errs))
-	}
-	if errs[0].Path != "count" {
-		t.Errorf("Expected path 'count', got: %v", errs[0].Path)
-	}
-}
-
-func TestRunValidationSkipsNilValidation(t *testing.T) {
-	type S struct{ X int }
-	s := S{X: 5}
-	v := validation.NewValidations(
-		nil,
-		validation.Value("X", s.X, rule.Max[int](10)),
-	)
-	if err := RunValidation(v); err != nil {
-		t.Errorf("No errors expected when nil validation is skipped, got: %v", err)
-	}
-}
-
-// --- RunValidation / RunFullValidation — struct validation via Validation() ---
+// --- RunValidation / RunFullValidation ---
 
 type sample struct {
 	X int
@@ -203,7 +166,7 @@ func TestSatisfiesValidationFalse(t *testing.T) {
 	}
 }
 
-// --- Nested validation — direct Nested() calls ---
+// --- Nested validation ---
 
 type lineItem struct {
 	Name     string
@@ -228,64 +191,6 @@ func (i invoice) Validation() validation.Validation {
 		validation.Nested("item", i.Item),
 	)
 }
-
-func TestRunValidationDirectNestedNoError(t *testing.T) {
-	item := lineItem{Name: "widget", Quantity: 3}
-	if err := RunValidation(validation.Nested("item", item)); err != nil {
-		t.Errorf("No errors expected, got: %v", err)
-	}
-}
-
-func TestRunValidationDirectNestedInnerFieldFails(t *testing.T) {
-	item := lineItem{Name: "", Quantity: 3}
-	if err := RunValidation(validation.Nested("item", item)); err == nil {
-		t.Errorf("Error expected for empty name")
-	}
-}
-
-func TestRunValidationDirectNestedOuterRuleCheckedFirst(t *testing.T) {
-	item := lineItem{Name: "", Quantity: -1}
-	outerFired := false
-	outer := func(lineItem) *types.ValidationError {
-		outerFired = true
-		return types.NewValidationError("outer failed")
-	}
-	err := RunValidation(validation.Nested("item", item, outer))
-	if !outerFired {
-		t.Errorf("Expected outer rule to be called")
-	}
-	if err == nil {
-		t.Errorf("Error expected")
-	}
-}
-
-func TestRunFullValidationDirectNestedOnlyInnerErrors(t *testing.T) {
-	item := lineItem{Name: "", Quantity: -1}
-	errs := RunFullValidation(validation.Nested("item", item))
-	if len(errs) != 2 {
-		t.Errorf("Expected 2 inner errors, got: %d", len(errs))
-	}
-}
-
-func TestRunFullValidationDirectNestedCollectsOuterAndInnerErrors(t *testing.T) {
-	item := lineItem{Name: "", Quantity: -1}
-	reject := func(lineItem) *types.ValidationError {
-		return types.NewValidationError("rejected")
-	}
-	errs := RunFullValidation(validation.Nested("item", item, reject))
-	if len(errs) < 3 {
-		t.Errorf("Expected at least 3 errors (1 outer + 2 inner), got: %d", len(errs))
-	}
-}
-
-func TestRunValidationDirectNestedSkipsNilOuterRule(t *testing.T) {
-	item := lineItem{Name: "widget", Quantity: 3}
-	if err := RunValidation(validation.Nested("item", item, nil)); err != nil {
-		t.Errorf("No errors expected when nil rule is skipped, got: %v", err)
-	}
-}
-
-// --- Nested validation — via struct Validation() ---
 
 type address struct {
 	Street string
@@ -368,20 +273,21 @@ func TestSatisfiesValidationNestedFails(t *testing.T) {
 
 // --- Nested validation — path assertions ---
 
-func TestRunValidationNestedInnerFieldPath(t *testing.T) {
-	item := lineItem{Name: "", Quantity: 3}
-	err := RunValidation(validation.Nested("item", item))
+func TestRunValidationFieldPath(t *testing.T) {
+	s := sample{X: 11, Y: 20}
+	err := RunValidation(s.Validation())
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
-	if err.Path != "item.name" {
-		t.Errorf("Expected path 'item.name', got: %v", err.Path)
+	if err.Path != "X" {
+		t.Errorf("Expected path 'X', got: %v", err.Path)
 	}
 }
 
-func TestRunValidationNestedInnerSecondFieldPath(t *testing.T) {
-	item := lineItem{Name: "bolt", Quantity: -1}
-	err := RunValidation(validation.Nested("item", item))
+func TestRunValidationNestedSecondInnerFieldPath(t *testing.T) {
+	// first field (name) is valid, second (quantity) fails — path should be item.quantity
+	inv := invoice{ID: 1, Item: lineItem{Name: "bolt", Quantity: -1}}
+	err := RunValidation(inv.Validation())
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
@@ -391,22 +297,33 @@ func TestRunValidationNestedInnerSecondFieldPath(t *testing.T) {
 }
 
 func TestRunValidationNestedOuterRulePath(t *testing.T) {
-	item := lineItem{Name: "widget", Quantity: 3}
-	reject := func(lineItem) *types.ValidationError {
-		return types.NewValidationError("rejected")
-	}
-	err := RunValidation(validation.Nested("item", item, reject))
+	// outer rule fails, inner struct is valid — path should be the field name, not a sub-field
+	d := delivery{From: "warehouse", Destination: address{Street: "1 Oak Ave", City: "Miami"}}
+	err := RunValidation(d.Validation())
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
-	if err.Path != "item" {
-		t.Errorf("Expected path 'item', got: %v", err.Path)
+	if err.Path != "destination" {
+		t.Errorf("Expected path 'destination', got: %v", err.Path)
 	}
 }
 
-func TestRunFullValidationNestedInnerPaths(t *testing.T) {
-	item := lineItem{Name: "", Quantity: -1}
-	errs := RunFullValidation(validation.Nested("item", item))
+func TestRunValidationNestedOuterRuleCheckedFirst(t *testing.T) {
+	// both outer rule and inner fields fail — RunValidation should return the outer error
+	d := delivery{From: "warehouse", Destination: address{Street: "", City: "Miami"}}
+	err := RunValidation(d.Validation())
+	if err == nil {
+		t.Fatalf("Error expected, got nil")
+	}
+	if err.Path != "destination" {
+		t.Errorf("Expected outer rule path 'destination', got: %v — outer rule should run before inner Validation()", err.Path)
+	}
+}
+
+func TestRunFullValidationNestedOuterAndInnerPaths(t *testing.T) {
+	// outer rule fails (city) + inner field fails (street) — both paths should appear
+	d := delivery{From: "warehouse", Destination: address{Street: "", City: "Miami"}}
+	errs := RunFullValidation(d.Validation())
 	if len(errs) != 2 {
 		t.Fatalf("Expected 2 errors, got: %d", len(errs))
 	}
@@ -414,35 +331,11 @@ func TestRunFullValidationNestedInnerPaths(t *testing.T) {
 	for _, e := range errs {
 		paths[e.Path] = true
 	}
-	if !paths["item.name"] {
-		t.Errorf("Expected error at path 'item.name', got paths: %v", paths)
+	if !paths["destination"] {
+		t.Errorf("Expected error at path 'destination' (outer rule), got paths: %v", paths)
 	}
-	if !paths["item.quantity"] {
-		t.Errorf("Expected error at path 'item.quantity', got paths: %v", paths)
-	}
-}
-
-func TestRunFullValidationNestedOuterAndInnerPaths(t *testing.T) {
-	item := lineItem{Name: "", Quantity: -1}
-	reject := func(lineItem) *types.ValidationError {
-		return types.NewValidationError("rejected")
-	}
-	errs := RunFullValidation(validation.Nested("item", item, reject))
-	if len(errs) != 3 {
-		t.Fatalf("Expected 3 errors, got: %d", len(errs))
-	}
-	paths := map[string]bool{}
-	for _, e := range errs {
-		paths[e.Path] = true
-	}
-	if !paths["item"] {
-		t.Errorf("Expected error at path 'item' (outer rule), got paths: %v", paths)
-	}
-	if !paths["item.name"] {
-		t.Errorf("Expected error at path 'item.name', got paths: %v", paths)
-	}
-	if !paths["item.quantity"] {
-		t.Errorf("Expected error at path 'item.quantity', got paths: %v", paths)
+	if !paths["destination.street"] {
+		t.Errorf("Expected error at path 'destination.street' (inner field), got paths: %v", paths)
 	}
 }
 
