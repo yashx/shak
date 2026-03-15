@@ -126,6 +126,47 @@ func (o TierOrder) Validation() validation.Validation {
 	)
 }
 
+type PersonWithAge struct {
+	Age int
+}
+
+func (p PersonWithAge) Validation() validation.Validation {
+	return validation.NewValidations(
+		validation.Value("age", p.Age,
+			rule.Range(0, 120).WithMessage("age must be between 0 and 120"),
+		),
+	)
+}
+
+type NestedOrder struct {
+	ID      int
+	Address Address
+}
+
+func (o NestedOrder) Validation() validation.Validation {
+	return validation.NewValidations(
+		validation.Value("ID", o.ID, rule.Positive[int]()),
+		validation.Nested("address", o.Address),
+	)
+}
+
+type ValueOrder struct {
+	ID      int
+	Address Address
+}
+
+func (o ValueOrder) Validation() validation.Validation {
+	return validation.NewValidations(
+		validation.Value("ID", o.ID, rule.Positive[int]()),
+		validation.Value("address", o.Address, func(a Address) *types.ValidationError {
+			if a.City == "" {
+				return types.NewValidationError("city is required for delivery")
+			}
+			return nil
+		}),
+	)
+}
+
 func Divisible(n int) types.Rule[int] {
 	return func(v int) *types.ValidationError {
 		if v%n == 0 {
@@ -168,7 +209,7 @@ func TestReadmeValidateAll(t *testing.T) {
 
 func TestReadmeRunValidation(t *testing.T) {
 	a := Address{Street: "123", City: ""}
-	err := shak.RunValidation(a.Validation())
+	err := shak.RunValidation(a)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -180,7 +221,7 @@ func TestReadmeRunValidation(t *testing.T) {
 
 func TestReadmeRunFullValidation(t *testing.T) {
 	a := Address{Street: "123", City: ""}
-	errs := shak.RunFullValidation(a.Validation())
+	errs := shak.RunFullValidation(a)
 	if len(errs) != 2 {
 		t.Fatalf("expected 2 errors, got %d", len(errs))
 	}
@@ -197,7 +238,7 @@ func TestReadmeRunFullValidation(t *testing.T) {
 
 func TestReadmeNestedStruct(t *testing.T) {
 	o := BasicOrder{ID: 1, Address: Address{Street: "", City: "Austin"}}
-	err := shak.RunValidation(o.Validation())
+	err := shak.RunValidation(o)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -209,7 +250,7 @@ func TestReadmeNestedStruct(t *testing.T) {
 
 func TestReadmeNestedOuterRule(t *testing.T) {
 	o := ServicedOrder{ID: 1, Address: Address{Street: "1 Oak Ave", City: "Miami"}}
-	err := shak.RunValidation(o.Validation())
+	err := shak.RunValidation(o)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -228,7 +269,7 @@ func TestReadmeSatisfies(t *testing.T) {
 
 func TestReadmeSatisfiesValidation(t *testing.T) {
 	a := Address{Street: "1 Main St", City: "Austin"}
-	if !shak.SatisfiesValidation(a.Validation()) {
+	if !shak.SatisfiesValidation(a) {
 		t.Error("expected SatisfiesValidation to return true")
 	}
 }
@@ -325,7 +366,7 @@ func TestReadmeIsValidMap(t *testing.T) {
 
 func TestReadmeValidationErrorFields(t *testing.T) {
 	a := Address{Street: "", City: "Austin"}
-	err := shak.RunValidation(a.Validation())
+	err := shak.RunValidation(a)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -348,7 +389,7 @@ func TestReadmeWarehouseErrorPath(t *testing.T) {
 			{"bolts": -3, "nuts": 200},
 		},
 	}
-	err := shak.RunValidation(w.Validation())
+	err := shak.RunValidation(w)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -405,17 +446,7 @@ func TestReadmeWithMessage(t *testing.T) {
 }
 
 func TestReadmeWithMessageOnRange(t *testing.T) {
-	type Person struct {
-		Age int
-	}
-	personValidation := func(p Person) validation.Validation {
-		return validation.NewValidations(
-			validation.Value("age", p.Age,
-				rule.Range(0, 120).WithMessage("age must be between 0 and 120"),
-			),
-		)
-	}
-	err := shak.RunValidation(personValidation(Person{Age: 150}))
+	err := shak.RunValidation(PersonWithAge{Age: 150})
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -427,7 +458,7 @@ func TestReadmeWithMessageOnRange(t *testing.T) {
 
 func TestReadmeIfTrue(t *testing.T) {
 	o := GiftOrder{IsGift: true, GiftMessage: ""}
-	err := shak.RunValidation(o.Validation())
+	err := shak.RunValidation(o)
 	if err == nil {
 		t.Fatal("expected error: GiftMessage required when IsGift is true")
 	}
@@ -439,7 +470,7 @@ func TestReadmeIfTrue(t *testing.T) {
 
 func TestReadmeIfFalse(t *testing.T) {
 	o := GiftOrder{IsGift: false, GiftMessage: ""}
-	if err := shak.RunValidation(o.Validation()); err != nil {
+	if err := shak.RunValidation(o); err != nil {
 		t.Errorf("expected no error when IsGift is false, got %v", err)
 	}
 }
@@ -447,7 +478,7 @@ func TestReadmeIfFalse(t *testing.T) {
 func TestReadmeIfElseFreeTier(t *testing.T) {
 	items := []string{"a", "b", "c", "d", "e", "f"} // 6 items
 	o := TierOrder{IsFree: true, Items: items}
-	if err := shak.RunValidation(o.Validation()); err == nil {
+	if err := shak.RunValidation(o); err == nil {
 		t.Fatal("expected error for free tier with 6 items")
 	}
 }
@@ -455,14 +486,14 @@ func TestReadmeIfElseFreeTier(t *testing.T) {
 func TestReadmeIfElsePaidTier(t *testing.T) {
 	items := []string{"a", "b", "c", "d", "e", "f"} // 6 items
 	o := TierOrder{IsFree: false, Items: items}
-	if err := shak.RunValidation(o.Validation()); err != nil {
+	if err := shak.RunValidation(o); err != nil {
 		t.Errorf("expected no error for paid tier with 6 items, got %v", err)
 	}
 }
 
 func TestReadmeRefNilPointer(t *testing.T) {
 	c := Config{MaxRetries: nil}
-	err := shak.RunValidation(c.Validation())
+	err := shak.RunValidation(c)
 	if err == nil {
 		t.Fatal("expected error for nil MaxRetries")
 	}
@@ -475,7 +506,7 @@ func TestReadmeRefNilPointer(t *testing.T) {
 func TestReadmeRefInvalidValue(t *testing.T) {
 	n := -1
 	c := Config{MaxRetries: &n}
-	err := shak.RunValidation(c.Validation())
+	err := shak.RunValidation(c)
 	if err == nil {
 		t.Fatal("expected error for negative MaxRetries")
 	}
@@ -501,18 +532,8 @@ func TestReadmeDeref(t *testing.T) {
 // own Validation() while validation.Value does not.
 func TestReadmeValueVsNested(t *testing.T) {
 	// Nested: Address.Validation() runs — street and city are both checked.
-	type NestedOrder struct {
-		ID      int
-		Address Address
-	}
-	nestedValidation := func(o NestedOrder) validation.Validation {
-		return validation.NewValidations(
-			validation.Value("ID", o.ID, rule.Positive[int]()),
-			validation.Nested("address", o.Address),
-		)
-	}
 	o := NestedOrder{ID: 1, Address: Address{Street: "", City: ""}}
-	errs := shak.RunFullValidation(nestedValidation(o))
+	errs := shak.RunFullValidation(o)
 	if len(errs) == 0 {
 		t.Fatal("expected errors from Nested, got none")
 	}
@@ -528,23 +549,8 @@ func TestReadmeValueVsNested(t *testing.T) {
 	}
 
 	// Value: only the explicit rule runs — Address.Validation() is ignored.
-	type ValueOrder struct {
-		ID      int
-		Address Address
-	}
-	valueValidation := func(o ValueOrder) validation.Validation {
-		return validation.NewValidations(
-			validation.Value("ID", o.ID, rule.Positive[int]()),
-			validation.Value("address", o.Address, func(a Address) *types.ValidationError {
-				if a.City == "" {
-					return types.NewValidationError("city is required for delivery")
-				}
-				return nil
-			}),
-		)
-	}
 	o2 := ValueOrder{ID: 1, Address: Address{Street: "", City: ""}}
-	err := shak.RunValidation(valueValidation(o2))
+	err := shak.RunValidation(o2)
 	if err == nil {
 		t.Fatal("expected error from Value rule, got nil")
 	}
@@ -553,7 +559,7 @@ func TestReadmeValueVsNested(t *testing.T) {
 		t.Errorf("got %q, want %q", err.Error(), want)
 	}
 	// Street is empty but Address.Validation() was NOT called, so no street error.
-	errs2 := shak.RunFullValidation(valueValidation(o2))
+	errs2 := shak.RunFullValidation(o2)
 	for _, e := range errs2 {
 		if e.Path == "address.street" {
 			t.Errorf("unexpected address.street error: Value should not call Address.Validation()")

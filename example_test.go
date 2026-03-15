@@ -5,7 +5,6 @@ import (
 
 	shak "github.com/yashx/shak"
 	"github.com/yashx/shak/rule"
-	"github.com/yashx/shak/validation"
 )
 
 func ExampleValidate() {
@@ -29,7 +28,7 @@ func ExampleValidateAll() {
 
 func ExampleRunValidation() {
 	a := Address{Street: "123", City: ""}
-	err := shak.RunValidation(a.Validation())
+	err := shak.RunValidation(a)
 	fmt.Println(err)
 	// Output:
 	// street: length is 3 bytes, expected at least 5
@@ -37,7 +36,7 @@ func ExampleRunValidation() {
 
 func ExampleRunFullValidation() {
 	a := Address{Street: "123", City: ""}
-	errs := shak.RunFullValidation(a.Validation())
+	errs := shak.RunFullValidation(a)
 	for _, err := range errs {
 		fmt.Println(err)
 	}
@@ -55,14 +54,14 @@ func ExampleSatisfies() {
 
 func ExampleSatisfiesValidation() {
 	a := Address{Street: "1 Main St", City: "Austin"}
-	fmt.Println(shak.SatisfiesValidation(a.Validation()))
+	fmt.Println(shak.SatisfiesValidation(a))
 	// Output:
 	// true
 }
 
 func ExampleRunValidation_nested() {
 	o := BasicOrder{ID: 1, Address: Address{Street: "", City: "Austin"}}
-	err := shak.RunValidation(o.Validation())
+	err := shak.RunValidation(o)
 	fmt.Println(err)
 	// Output:
 	// address.street: value must not be blank
@@ -70,7 +69,7 @@ func ExampleRunValidation_nested() {
 
 func ExampleRunValidation_nestedOuterRule() {
 	o := ServicedOrder{ID: 1, Address: Address{Street: "1 Oak Ave", City: "Miami"}}
-	err := shak.RunValidation(o.Validation())
+	err := shak.RunValidation(o)
 	fmt.Println(err)
 	// Output:
 	// address: delivery not available in "Miami"
@@ -78,7 +77,7 @@ func ExampleRunValidation_nestedOuterRule() {
 
 func ExampleRunValidation_errorFields() {
 	a := Address{Street: "", City: "Austin"}
-	err := shak.RunValidation(a.Validation())
+	err := shak.RunValidation(a)
 	fmt.Println(err)
 	fmt.Println(err.Path)
 	fmt.Println(err.Message)
@@ -96,7 +95,7 @@ func ExampleRunValidation_errorPath() {
 			{"bolts": -3, "nuts": 200},
 		},
 	}
-	err := shak.RunValidation(w.Validation())
+	err := shak.RunValidation(w)
 	fmt.Println(err)
 	// Output:
 	// sections[1][bolts]: value -3 is less than minimum 0
@@ -179,17 +178,7 @@ func ExampleValidate_withMessage() {
 }
 
 func ExampleRunValidation_withMessageOnRange() {
-	type Person struct {
-		Age int
-	}
-	personValidation := func(p Person) validation.Validation {
-		return validation.NewValidations(
-			validation.Value("age", p.Age,
-				rule.Range(0, 120).WithMessage("age must be between 0 and 120"),
-			),
-		)
-	}
-	err := shak.RunValidation(personValidation(Person{Age: 150}))
+	err := shak.RunValidation(PersonWithAge{Age: 150})
 	fmt.Println(err)
 	// Output:
 	// age: age must be between 0 and 120
@@ -197,7 +186,7 @@ func ExampleRunValidation_withMessageOnRange() {
 
 func ExampleRunValidation_ifCondition() {
 	o := GiftOrder{IsGift: true, GiftMessage: ""}
-	err := shak.RunValidation(o.Validation())
+	err := shak.RunValidation(o)
 	fmt.Println(err)
 	// Output:
 	// giftMessage: value must not be blank
@@ -206,7 +195,7 @@ func ExampleRunValidation_ifCondition() {
 func ExampleRunValidation_ref() {
 	n := -1
 	c := Config{MaxRetries: &n}
-	err := shak.RunValidation(c.Validation())
+	err := shak.RunValidation(c)
 	fmt.Println(err)
 	// Output:
 	// maxRetries: value -1 is less than minimum 0

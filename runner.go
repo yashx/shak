@@ -18,14 +18,14 @@ func Validate[T any](value T, rules ...types.Rule[T]) *types.ValidationError {
 }
 
 // SatisfiesValidation reports whether v produces no errors.
-func SatisfiesValidation(v validation.Validation) bool {
-	err := v.Validate()
+func SatisfiesValidation[T validation.Validatable](v T) bool {
+	err := v.Validation().Validate()
 	return err == nil
 }
 
 // RunValidation executes v and returns the first error, or nil.
-func RunValidation(v validation.Validation) *types.ValidationError {
-	return v.Validate()
+func RunValidation[T validation.Validatable](v T) *types.ValidationError {
+	return v.Validation().Validate()
 }
 
 // ValidateAll runs all rules against value and returns every error.
@@ -35,6 +35,6 @@ func ValidateAll[T any](value T, rules ...types.Rule[T]) []*types.ValidationErro
 }
 
 // RunFullValidation executes v and returns every error.
-func RunFullValidation(v validation.Validation) []*types.ValidationError {
-	return v.ValidateAll()
+func RunFullValidation[T validation.Validatable](v T) []*types.ValidationError {
+	return v.Validation().ValidateAll()
 }

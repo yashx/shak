@@ -105,12 +105,12 @@ func (a Address) Validation() validation.Validation {
 
 a := Address{Street: "123", City: ""}
 
-err := shak.RunValidation(a.Validation())
+err := shak.RunValidation(a)
 fmt.Println(err)
 // Output:
 // street: length is 3 bytes, expected at least 5
 
-errs := shak.RunFullValidation(a.Validation())
+errs := shak.RunFullValidation(a)
 for _, err := range errs {
     fmt.Println(err)
 }
@@ -152,7 +152,7 @@ func (o Order) Validation() validation.Validation {
 
 o := Order{ID: 1, Address: Address{Street: "", City: "Austin"}}
 
-err := shak.RunValidation(o.Validation())
+err := shak.RunValidation(o)
 fmt.Println(err)
 // address.street: value must not be blank
 ```
@@ -180,7 +180,7 @@ func (o Order) Validation() validation.Validation {
 
 o := Order{ID: 1, Address: Address{Street: "1 Oak Ave", City: "Miami"}}
 
-err := shak.RunValidation(o.Validation())
+err := shak.RunValidation(o)
 fmt.Println(err)
 // address: delivery not available in "Miami"
 ```
@@ -216,7 +216,7 @@ if shak.Satisfies(age, rule.Min(0), rule.Max(120)) {
 }
 
 // for a struct validation
-if shak.SatisfiesValidation(address.Validation()) {
+if shak.SatisfiesValidation(address) {
     fmt.Println("address is valid")
 }
 ```
@@ -342,7 +342,7 @@ type ValidationError struct {
 `ValidationError` implements the `error` interface. Calling `.Error()` returns `"path: message"`, or just `"message"` when there is no path:
 
 ```go
-err := shak.RunValidation(address.Validation())
+err := shak.RunValidation(address)
 fmt.Println(err)         // street: value must not be blank
 fmt.Println(err.Path)    // street
 fmt.Println(err.Message) // value must not be blank
@@ -380,7 +380,7 @@ w := Warehouse{
     },
 }
 
-err := shak.RunValidation(w.Validation())
+err := shak.RunValidation(w)
 fmt.Println(err)
 // sections[1][bolts]: value -3 is less than minimum 0
 ```

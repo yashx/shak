@@ -112,7 +112,7 @@ func (s sample) Validation() validation.Validation {
 
 func TestRunValidationNoError(t *testing.T) {
 	s := sample{X: 5, Y: 20}
-	err := RunValidation(s.Validation())
+	err := RunValidation(s)
 	if err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestRunValidationNoError(t *testing.T) {
 
 func TestRunValidationReturnsFirstError(t *testing.T) {
 	s := sample{X: 11, Y: 1}
-	err := RunValidation(s.Validation())
+	err := RunValidation(s)
 	if err == nil {
 		t.Errorf("Error expected, got nil")
 	}
@@ -128,7 +128,7 @@ func TestRunValidationReturnsFirstError(t *testing.T) {
 
 func TestRunFullValidationNoErrors(t *testing.T) {
 	s := sample{X: 5, Y: 20}
-	errs := RunFullValidation(s.Validation())
+	errs := RunFullValidation(s)
 	for _, e := range errs {
 		if e != nil {
 			t.Errorf("No errors expected, got: %v", e)
@@ -138,7 +138,7 @@ func TestRunFullValidationNoErrors(t *testing.T) {
 
 func TestRunFullValidationCollectsAllErrors(t *testing.T) {
 	s := sample{X: 11, Y: 1}
-	errs := RunFullValidation(s.Validation())
+	errs := RunFullValidation(s)
 	var count int
 	for _, e := range errs {
 		if e != nil {
@@ -154,14 +154,14 @@ func TestRunFullValidationCollectsAllErrors(t *testing.T) {
 
 func TestSatisfiesValidationTrue(t *testing.T) {
 	s := sample{X: 5, Y: 20}
-	if !SatisfiesValidation(s.Validation()) {
+	if !SatisfiesValidation(s) {
 		t.Errorf("Expected SatisfiesValidation to return true")
 	}
 }
 
 func TestSatisfiesValidationFalse(t *testing.T) {
 	s := sample{X: 11, Y: 1}
-	if SatisfiesValidation(s.Validation()) {
+	if SatisfiesValidation(s) {
 		t.Errorf("Expected SatisfiesValidation to return false")
 	}
 }
@@ -220,21 +220,21 @@ func (p person) Validation() validation.Validation {
 
 func TestRunValidationNestedNoError(t *testing.T) {
 	p := person{Name: "Alice", Age: 30, Address: address{Street: "1 Main St", City: "Springfield"}}
-	if err := RunValidation(p.Validation()); err != nil {
+	if err := RunValidation(p); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
 
 func TestRunValidationNestedInnerFails(t *testing.T) {
 	p := person{Name: "Alice", Age: 30, Address: address{Street: "", City: "Springfield"}}
-	if err := RunValidation(p.Validation()); err == nil {
+	if err := RunValidation(p); err == nil {
 		t.Errorf("Error expected for blank street")
 	}
 }
 
 func TestRunValidationNestedOuterFails(t *testing.T) {
 	p := person{Name: "", Age: 30, Address: address{Street: "1 Main St", City: "Springfield"}}
-	if err := RunValidation(p.Validation()); err == nil {
+	if err := RunValidation(p); err == nil {
 		t.Errorf("Error expected for blank name")
 	}
 }
@@ -242,7 +242,7 @@ func TestRunValidationNestedOuterFails(t *testing.T) {
 func TestRunFullValidationNestedCollectsAllErrors(t *testing.T) {
 	// name blank + address both fields blank = 3 errors total
 	p := person{Name: "", Age: 30, Address: address{Street: "", City: ""}}
-	errs := RunFullValidation(p.Validation())
+	errs := RunFullValidation(p)
 	if len(errs) != 3 {
 		t.Errorf("Expected 3 errors, got: %d", len(errs))
 	}
@@ -251,7 +251,7 @@ func TestRunFullValidationNestedCollectsAllErrors(t *testing.T) {
 func TestRunFullValidationNestedOuterAndInnerFail(t *testing.T) {
 	// age out of range + street blank = 2 errors across two levels
 	p := person{Name: "Alice", Age: 200, Address: address{Street: "", City: "Springfield"}}
-	errs := RunFullValidation(p.Validation())
+	errs := RunFullValidation(p)
 	if len(errs) != 2 {
 		t.Errorf("Expected 2 errors, got: %d", len(errs))
 	}
@@ -259,14 +259,14 @@ func TestRunFullValidationNestedOuterAndInnerFail(t *testing.T) {
 
 func TestSatisfiesValidationNested(t *testing.T) {
 	p := person{Name: "Alice", Age: 30, Address: address{Street: "1 Main St", City: "Springfield"}}
-	if !SatisfiesValidation(p.Validation()) {
+	if !SatisfiesValidation(p) {
 		t.Errorf("Expected SatisfiesValidation to return true")
 	}
 }
 
 func TestSatisfiesValidationNestedFails(t *testing.T) {
 	p := person{Name: "Alice", Age: 30, Address: address{Street: "", City: "Springfield"}}
-	if SatisfiesValidation(p.Validation()) {
+	if SatisfiesValidation(p) {
 		t.Errorf("Expected SatisfiesValidation to return false for invalid nested struct")
 	}
 }
@@ -275,7 +275,7 @@ func TestSatisfiesValidationNestedFails(t *testing.T) {
 
 func TestRunValidationFieldPath(t *testing.T) {
 	s := sample{X: 11, Y: 20}
-	err := RunValidation(s.Validation())
+	err := RunValidation(s)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
@@ -287,7 +287,7 @@ func TestRunValidationFieldPath(t *testing.T) {
 func TestRunValidationNestedSecondInnerFieldPath(t *testing.T) {
 	// first field (name) is valid, second (quantity) fails — path should be item.quantity
 	inv := invoice{ID: 1, Item: lineItem{Name: "bolt", Quantity: -1}}
-	err := RunValidation(inv.Validation())
+	err := RunValidation(inv)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
@@ -299,7 +299,7 @@ func TestRunValidationNestedSecondInnerFieldPath(t *testing.T) {
 func TestRunValidationNestedOuterRulePath(t *testing.T) {
 	// outer rule fails, inner struct is valid — path should be the field name, not a sub-field
 	d := delivery{From: "warehouse", Destination: address{Street: "1 Oak Ave", City: "Miami"}}
-	err := RunValidation(d.Validation())
+	err := RunValidation(d)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
@@ -311,7 +311,7 @@ func TestRunValidationNestedOuterRulePath(t *testing.T) {
 func TestRunValidationNestedOuterRuleCheckedFirst(t *testing.T) {
 	// both outer rule and inner fields fail — RunValidation should return the outer error
 	d := delivery{From: "warehouse", Destination: address{Street: "", City: "Miami"}}
-	err := RunValidation(d.Validation())
+	err := RunValidation(d)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
@@ -323,7 +323,7 @@ func TestRunValidationNestedOuterRuleCheckedFirst(t *testing.T) {
 func TestRunFullValidationNestedOuterAndInnerPaths(t *testing.T) {
 	// outer rule fails (city) + inner field fails (street) — both paths should appear
 	d := delivery{From: "warehouse", Destination: address{Street: "", City: "Miami"}}
-	errs := RunFullValidation(d.Validation())
+	errs := RunFullValidation(d)
 	if len(errs) != 2 {
 		t.Fatalf("Expected 2 errors, got: %d", len(errs))
 	}
@@ -341,7 +341,7 @@ func TestRunFullValidationNestedOuterAndInnerPaths(t *testing.T) {
 
 func TestRunValidationNestedInsideNewValidationsInnerPath(t *testing.T) {
 	inv := invoice{ID: 1, Item: lineItem{Name: "", Quantity: 10}}
-	err := RunValidation(inv.Validation())
+	err := RunValidation(inv)
 	if err == nil {
 		t.Fatalf("Error expected, got nil")
 	}
@@ -352,7 +352,7 @@ func TestRunValidationNestedInsideNewValidationsInnerPath(t *testing.T) {
 
 func TestRunFullValidationNestedInsideNewValidationsAllPaths(t *testing.T) {
 	inv := invoice{ID: -1, Item: lineItem{Name: "", Quantity: -1}}
-	errs := RunFullValidation(inv.Validation())
+	errs := RunFullValidation(inv)
 	if len(errs) != 3 {
 		t.Fatalf("Expected 3 errors, got: %d", len(errs))
 	}
@@ -411,7 +411,7 @@ func (d delivery) Validation() validation.Validation {
 
 func TestCustomRuleOnNestedValid(t *testing.T) {
 	d := delivery{From: "warehouse", Destination: address{Street: "1 Oak Ave", City: "Austin"}}
-	if err := RunValidation(d.Validation()); err != nil {
+	if err := RunValidation(d); err != nil {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
@@ -419,7 +419,7 @@ func TestCustomRuleOnNestedValid(t *testing.T) {
 func TestCustomRuleOnNestedCityNotServiced(t *testing.T) {
 	// custom outer rule fails; address itself is structurally valid
 	d := delivery{From: "warehouse", Destination: address{Street: "1 Oak Ave", City: "Miami"}}
-	if err := RunValidation(d.Validation()); err == nil {
+	if err := RunValidation(d); err == nil {
 		t.Errorf("Error expected: city not in serviced list")
 	}
 }
@@ -427,7 +427,7 @@ func TestCustomRuleOnNestedCityNotServiced(t *testing.T) {
 func TestCustomRuleOnNestedBothFail(t *testing.T) {
 	// custom outer rule fails AND inner struct is invalid (blank street)
 	d := delivery{From: "warehouse", Destination: address{Street: "", City: "Miami"}}
-	errs := RunFullValidation(d.Validation())
+	errs := RunFullValidation(d)
 	if len(errs) != 2 {
 		t.Errorf("Expected 2 errors (city + street), got: %d", len(errs))
 	}
@@ -463,14 +463,14 @@ func TestValueRunsOnlyExplicitRules(t *testing.T) {
 	// Street is blank, which would fail address.Validation() — but we used Value,
 	// so only cityNotBlank runs and the shipment is considered valid
 	s := shipment{TrackingID: "TRK-001", Drop: address{Street: "", City: "Austin"}}
-	if err := RunValidation(s.Validation()); err != nil {
+	if err := RunValidation(s); err != nil {
 		t.Errorf("No errors expected: blank street is not checked via Value, got: %v", err)
 	}
 }
 
 func TestValueExplicitRuleFails(t *testing.T) {
 	s := shipment{TrackingID: "TRK-001", Drop: address{Street: "", City: ""}}
-	if err := RunValidation(s.Validation()); err == nil {
+	if err := RunValidation(s); err == nil {
 		t.Errorf("Error expected: cityNotBlank rule should fail")
 	}
 }
