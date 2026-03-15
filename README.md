@@ -1,5 +1,11 @@
 # shak
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/yashx/shak.svg)](https://pkg.go.dev/github.com/yashx/shak)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yashx/shak)](https://goreportcard.com/report/github.com/yashx/shak)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/yashx/shak)](https://github.com/yashx/shak)
+[![License](https://img.shields.io/github/license/yashx/shak)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/tag/yashx/shak)](https://github.com/yashx/shak/tags)
+
 **shak** (pronounced like "shuck") is a Hindi word (शक) that means *doubt*.
 
 ## Description
