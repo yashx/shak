@@ -1,11 +1,13 @@
 package shak_test
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
 	shak "github.com/yashx/shak"
 	"github.com/yashx/shak/rule"
+	"github.com/yashx/shak/shaktest"
 	"github.com/yashx/shak/types"
 	"github.com/yashx/shak/validation"
 )
@@ -563,5 +565,69 @@ func TestReadmeValueVsNested(t *testing.T) {
 		if e.Path == "address.street" {
 			t.Errorf("unexpected address.street error: Value should not call Address.Validation()")
 		}
+	}
+}
+
+// ---- Testing with shaktest ----
+
+// recordingTB records reported errors instead of failing the test.
+type recordingTB struct {
+	testing.TB
+	errors []string
+	failed bool
+}
+
+func (r *recordingTB) Helper()           {}
+func (r *recordingTB) Error(args ...any) { r.errors = append(r.errors, fmt.Sprint(args...)) }
+func (r *recordingTB) FailNow()          { r.failed = true }
+
+func TestReadmeShaktestRequireAssert(t *testing.T) {
+	email, age := "a@example.com", 30
+	shaktest.Require(t, email, rule.NotBlank[string](), rule.ContainsRune[string]('@'))
+	shaktest.Assert(t, age, rule.Range(18, 120))
+}
+
+func TestReadmeShaktestRequireValidation(t *testing.T) {
+	o := BasicOrder{ID: 1, Address: Address{Street: "1 Oak Ave", City: "Austin"}}
+	shaktest.RequireValidation(t, o)
+}
+
+func TestReadmeShaktestRequireValidationFailure(t *testing.T) {
+	r := &recordingTB{TB: t}
+	shaktest.RequireValidation(r, BasicOrder{ID: 1})
+	if !r.failed {
+		t.Error("expected RequireValidation to stop the test")
+	}
+	for _, want := range []string{
+		"address.street: value must not be blank",
+		"address.city: value must not be blank",
+	} {
+		if !slices.Contains(r.errors, want) {
+			t.Errorf("missing %q in %q", want, r.errors)
+		}
+	}
+}
+
+func TestReadmeShaktestAssertSkip(t *testing.T) {
+	r := &recordingTB{TB: t}
+	orders := []BasicOrder{
+		{ID: 0, Address: Address{Street: "1 Oak Ave", City: "Austin"}},
+		{ID: 2, Address: Address{Street: "2 Elm St.", City: "Denver"}},
+	}
+	var checked []int
+	for _, o := range orders {
+		if !shaktest.AssertValidation(r, o) {
+			continue
+		}
+		checked = append(checked, o.ID)
+	}
+	if r.failed {
+		t.Error("AssertValidation must not stop the test")
+	}
+	if !slices.Equal(checked, []int{2}) {
+		t.Errorf("checked orders: got %v, want [2]", checked)
+	}
+	if want := []string{"ID: value 0 is not positive"}; !slices.Equal(r.errors, want) {
+		t.Errorf("errors: got %q, want %q", r.errors, want)
 	}
 }

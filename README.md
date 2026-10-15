@@ -22,6 +22,7 @@ It has the following features:
 - Collect all errors at once or stop at the first failure.
 - Structured errors with field paths for precise error reporting.
 - Rich set of built-in rules, and easy to add custom ones.
+- Test helpers in `shaktest` for checking validity in Go tests.
 
 ## Installation
 
@@ -33,15 +34,6 @@ go get github.com/yashx/shak
 
 Go 1.21 or above.
 
-## A Note on LLM Usage
-
-The design of this library — its architecture, core abstractions, and the initial set of validation rules — was written by me. LLMs were used to speed up the parts of development I don't find interesting and didn't want to spend my weekends on:
-
-- **Tests** — unit and integration test coverage
-- **Documentation** — doc comments and this README
-- **Code review** — catching bugs and inconsistencies
-- **Built-in rules** — filling out common use cases beyond the initial set
-
 ## Getting Started
 
 shak is built around two concepts: **rules** and **validations**. A rule is a function that checks a single value. A validation groups rules and fields together and can be executed to collect errors.
@@ -49,6 +41,7 @@ shak is built around two concepts: **rules** and **validations**. A rule is a fu
 - Use `shak.Validate()` / `shak.ValidateAll()` to validate a single value against rules directly.
 - Use `shak.RunValidation()` / `shak.RunFullValidation()` to execute a structured validation built with `validation.Value()`, `validation.Nested()`, and `validation.NewValidations()`.
 - Implement `Validatable` on your structs to make them self-describing.
+- In tests, use `shaktest.Require()` / `shaktest.Assert()` to fail a test when a value is invalid (see [Testing with shaktest](#testing-with-shaktest)).
 
 ### Validating a Simple Value
 
@@ -166,13 +159,11 @@ fmt.Println(err)
 You can also pass outer rules to `Nested`. They run before the field's own `Validation()` and receive the whole struct as the value:
 
 ```go
-validCities := []string{"Austin", "Denver", "Portland"}
+var validCities = []string{"Austin", "Denver", "Portland"}
 
 func mustBeServicedCity(a Address) *types.ValidationError {
-    for _, c := range validCities {
-        if a.City == c {
-            return nil
-        }
+    if slices.Contains(validCities, a.City) {
+        return nil
     }
     return types.NewValidationError("delivery not available in %q", a.City)
 }
@@ -513,9 +504,62 @@ ptrRule := rule.Ref(rule.Positive[int]())
 validation.Value("count", c.Count, rule.Deref(ptrRule))
 ```
 
-### Built-in Rules
+## Testing with shaktest
 
-#### Ordered (`int`, `float64`, `string`, and any `cmp.Ordered` type)
+The `shaktest` package turns validation results into test failures, so you don't have to write `if err != nil { t.Fatal(err) }` around every check. It is useful for checking that values your code produces — parsed configs, decoded requests, constructed structs — satisfy their rules.
+
+| Function | Validates | On failure |
+|---|---|---|
+| `shaktest.Require(t, value, rules...)` | a single value against rules | reports every error, then stops the test |
+| `shaktest.Assert(t, value, rules...)` | a single value against rules | reports every error, the test continues; returns `false` |
+| `shaktest.RequireValidation(t, v)` | a `Validatable` | reports every error, then stops the test |
+| `shaktest.AssertValidation(t, v)` | a `Validatable` | reports every error, the test continues; returns `false` |
+
+All of them report every failing rule, not just the first, and point the failure at your test's line:
+
+```go
+import (
+    "testing"
+
+    "github.com/yashx/shak/rule"
+    "github.com/yashx/shak/shaktest"
+)
+
+func TestUser(t *testing.T) {
+    u := loadUser()
+    shaktest.Require(t, u.Email, rule.NotBlank[string](), rule.ContainsRune[string]('@'))
+    shaktest.Assert(t, u.Age, rule.Range(18, 120))
+}
+```
+
+For types that implement `Validatable`, use `RequireValidation` and `AssertValidation`:
+
+```go
+func TestOrder(t *testing.T) {
+    o := Order{ID: 1, Address: Address{Street: "1 Oak Ave", City: "Austin"}}
+    shaktest.RequireValidation(t, o)
+}
+// on failure, e.g.:
+//   order_test.go:3: address.street: value must not be blank
+//   order_test.go:3: address.city: value must not be blank
+```
+
+`Assert` and `AssertValidation` return whether the value passed, so you can skip only the checks that depend on it and keep testing the rest:
+
+```go
+for _, o := range orders {
+    if !shaktest.AssertValidation(t, o) {
+        continue // this order is invalid: skip its dependent checks, test the next one
+    }
+    shaktest.Assert(t, total(o), rule.Positive[float64]())
+}
+```
+
+The helpers accept any `testing.TB`, so they also work in benchmarks and fuzz tests. Import `shaktest` only from `_test.go` files; it is then never compiled into your program.
+
+## Built-in Rules
+
+### Ordered (`int`, `float64`, `string`, and any `cmp.Ordered` type)
 
 - `rule.Min(n)` — value must be ≥ n
 - `rule.Max(n)` — value must be ≤ n
@@ -530,7 +574,7 @@ validation.Value("count", c.Count, rule.Deref(ptrRule))
 - `rule.GreaterThan(n)` — value must be > n
 - `rule.GreaterThanEqual(n)` — value must be ≥ n
 
-#### Comparable (any `comparable` type)
+### Comparable (any `comparable` type)
 
 - `rule.Equal(v)` — value must equal v
 - `rule.NotEqual(v)` — value must not equal v
@@ -539,7 +583,7 @@ validation.Value("count", c.Count, rule.Deref(ptrRule))
 - `rule.IsZeroValue()` — value must be the zero value for its type
 - `rule.IsNotZeroValue()` — value must not be the zero value for its type
 
-#### String (`string` and any `~string` type)
+### String (`string` and any `~string` type)
 
 - `rule.NotBlank()` — string must not be empty or whitespace-only
 - `rule.IsBlank()` — string must be empty or whitespace-only
@@ -564,17 +608,17 @@ validation.Value("count", c.Count, rule.Deref(ptrRule))
 - `rule.EqualIgnoreCase(s)` — string must equal s, ignoring case
 - `rule.NotEqualIgnoreCase(s)` — string must not equal s, ignoring case
 
-#### Boolean (`bool` and any `~bool` type)
+### Boolean (`bool` and any `~bool` type)
 
 - `rule.IsTrue()` — value must be true
 - `rule.IsFalse()` — value must be false
 
-#### Pointer
+### Pointer
 
 - `rule.IsNil()` — pointer must be nil
 - `rule.IsNotNil()` — pointer must not be nil
 
-#### Time (`time.Time`)
+### Time (`time.Time`)
 
 - `rule.Before(t)` — time must be before t
 - `rule.After(t)` — time must be after t
