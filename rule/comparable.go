@@ -1,6 +1,8 @@
 package rule
 
 import (
+	"slices"
+
 	"github.com/yashx/shak/types"
 )
 
@@ -49,10 +51,8 @@ func NotEqual[T comparable](ne T) types.Rule[T] {
 // EqualToAny validates that the value equals at least one of the provided values.
 func EqualToAny[T comparable](eq ...T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
-		for _, v := range eq {
-			if value == v {
-				return nil
-			}
+		if slices.Contains(eq, value) {
+			return nil
 		}
 		return types.NewValidationError("%v does not match any of the allowed values %v", value, eq)
 	}
@@ -61,10 +61,8 @@ func EqualToAny[T comparable](eq ...T) types.Rule[T] {
 // NotEqualToAny validates that the value does not equal any of the provided values.
 func NotEqualToAny[T comparable](ne ...T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
-		for _, v := range ne {
-			if value == v {
-				return types.NewValidationError("%v matches a forbidden value in %v", value, ne)
-			}
+		if slices.Contains(ne, value) {
+			return types.NewValidationError("%v matches a forbidden value in %v", value, ne)
 		}
 		return nil
 	}

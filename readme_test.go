@@ -1,6 +1,7 @@
 package shak_test
 
 import (
+	"slices"
 	"testing"
 
 	shak "github.com/yashx/shak"
@@ -45,10 +46,8 @@ type ServicedOrder struct {
 var servicedCities = []string{"Austin", "Denver", "Portland"}
 
 func mustBeServicedCity(a Address) *types.ValidationError {
-	for _, c := range servicedCities {
-		if a.City == c {
-			return nil
-		}
+	if slices.Contains(servicedCities, a.City) {
+		return nil
 	}
 	return types.NewValidationError("delivery not available in %q", a.City)
 }

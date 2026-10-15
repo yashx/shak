@@ -759,4 +759,3 @@ func TestNotBlankCustomType(t *testing.T) {
 		t.Errorf("No errors expected, got: %v", err)
 	}
 }
-

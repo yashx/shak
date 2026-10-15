@@ -1,6 +1,7 @@
 package shak
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/yashx/shak/rule"
@@ -388,10 +389,8 @@ func TestValidatableImplementsInterface(t *testing.T) {
 var allowedCities = []string{"Austin", "Denver", "Portland"}
 
 func notServicedCity(a address) *types.ValidationError {
-	for _, c := range allowedCities {
-		if a.City == c {
-			return nil
-		}
+	if slices.Contains(allowedCities, a.City) {
+		return nil
 	}
 	return types.NewValidationError("delivery not available in %q", a.City)
 }
