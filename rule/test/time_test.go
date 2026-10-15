@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	epoch   = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
-	past    = time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC)
-	future  = time.Date(2099, 1, 1, 0, 0, 0, 0, time.UTC)
-	midday  = time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC)
+	epoch  = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	past   = time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC)
+	future = time.Date(2099, 1, 1, 0, 0, 0, 0, time.UTC)
+	midday = time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC)
 )
 
 // Before
@@ -182,7 +182,6 @@ func TestInTheFutureOrPresentValid(t *testing.T) {
 	}
 }
 
-
 func TestInTheFutureOrPresentError(t *testing.T) {
 	r := rule.InTheFutureOrPresent()
 	err := r(past)
@@ -215,8 +214,8 @@ func TestOnDateError(t *testing.T) {
 func TestOnDateDifferentTimezone(t *testing.T) {
 	// same instant in UTC and UTC+9 falls on different calendar dates
 	loc := time.FixedZone("UTC+9", 9*60*60)
-	ref := time.Date(2000, 1, 2, 0, 0, 0, 0, loc)          // 2000-01-02 in UTC+9
-	value := time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC)  // still 2000-01-01 in UTC, but 2000-01-02 in UTC+9
+	ref := time.Date(2000, 1, 2, 0, 0, 0, 0, loc)         // 2000-01-02 in UTC+9
+	value := time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC) // still 2000-01-01 in UTC, but 2000-01-02 in UTC+9
 	r := rule.OnDate(ref)
 	if err := r(value); err != nil {
 		t.Errorf("No errors expected when value falls on ref date in ref timezone, got: %v", err)
@@ -225,8 +224,8 @@ func TestOnDateDifferentTimezone(t *testing.T) {
 
 func TestOnDateTimezoneError(t *testing.T) {
 	loc := time.FixedZone("UTC+9", 9*60*60)
-	ref := time.Date(2000, 1, 1, 0, 0, 0, 0, loc)          // 2000-01-01 in UTC+9
-	value := time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC)  // 2000-01-02 in UTC+9
+	ref := time.Date(2000, 1, 1, 0, 0, 0, 0, loc)         // 2000-01-01 in UTC+9
+	value := time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC) // 2000-01-02 in UTC+9
 	r := rule.OnDate(ref)
 	err := r(value)
 	if err == nil {

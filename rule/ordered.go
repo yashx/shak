@@ -50,43 +50,43 @@ func NegativeOrZero[T cmp.Ordered]() types.Rule[T] {
 	}
 }
 
-// Min validates that the value is greater than or equal to min.
-func Min[T cmp.Ordered](min T) types.Rule[T] {
+// Min validates that the value is greater than or equal to lo.
+func Min[T cmp.Ordered](lo T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
-		if min <= value {
+		if lo <= value {
 			return nil
 		}
-		return types.NewValidationError("value %v is less than minimum %v", value, min)
+		return types.NewValidationError("value %v is less than minimum %v", value, lo)
 	}
 }
 
-// Max validates that the value is less than or equal to max.
-func Max[T cmp.Ordered](max T) types.Rule[T] {
+// Max validates that the value is less than or equal to hi.
+func Max[T cmp.Ordered](hi T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
-		if max >= value {
+		if hi >= value {
 			return nil
 		}
-		return types.NewValidationError("value %v is greater than maximum %v", value, max)
+		return types.NewValidationError("value %v is greater than maximum %v", value, hi)
 	}
 }
 
-// Range validates that the value is between min and max inclusive.
-func Range[T cmp.Ordered](min, max T) types.Rule[T] {
+// Range validates that the value is between lo and hi inclusive.
+func Range[T cmp.Ordered](lo, hi T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
-		if min <= value && value <= max {
+		if lo <= value && value <= hi {
 			return nil
 		}
-		return types.NewValidationError("value %v is not between %v and %v", value, min, max)
+		return types.NewValidationError("value %v is not between %v and %v", value, lo, hi)
 	}
 }
 
-// NotInRange validates that the value is not between min and max inclusive.
-func NotInRange[T cmp.Ordered](min, max T) types.Rule[T] {
+// NotInRange validates that the value is not between lo and hi inclusive.
+func NotInRange[T cmp.Ordered](lo, hi T) types.Rule[T] {
 	return func(value T) *types.ValidationError {
-		if value < min || value > max {
+		if value < lo || value > hi {
 			return nil
 		}
-		return types.NewValidationError("value %v must not be between %v and %v", value, min, max)
+		return types.NewValidationError("value %v must not be between %v and %v", value, lo, hi)
 	}
 }
 

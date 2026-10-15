@@ -26,13 +26,13 @@ func After(t time.Time) types.Rule[time.Time] {
 	}
 }
 
-// Between validates that the time is between min and max inclusive.
-func Between(min, max time.Time) types.Rule[time.Time] {
+// Between validates that the time is between lo and hi inclusive.
+func Between(lo, hi time.Time) types.Rule[time.Time] {
 	return func(value time.Time) *types.ValidationError {
-		if !value.Before(min) && !value.After(max) {
+		if !value.Before(lo) && !value.After(hi) {
 			return nil
 		}
-		return types.NewValidationError("time %v must be between %v and %v", value, min, max)
+		return types.NewValidationError("time %v must be between %v and %v", value, lo, hi)
 	}
 }
 
